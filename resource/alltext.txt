@@ -1,0 +1,389 @@
+addr, mall, block, zipcode, store
+gstpair, telfaxpair, companypair
+
+receiptidkey-val
+
+datetime
+
+tablekey-val(number), namekey-val(person name), otherkey-val(id), money-val(money)
+total-nottotal
+
+notpair
+
+combine 2 locationitems, combine datetime and pair
+only key or only val
+Tr:00123 (fairprice id), id same datetime
+
+20% date--
+35% 12% loc--
+    8% gsttelcompany --
+    15% store --
+16% 8% total--
+    8% not total--
+06% id--
+09% 4% notpair--
+    5% others--
+10% date+id+others--
+4% special
+    
+
+====>Add random text at end/begining or cut text at end/begining
+====>Combine 2 line into 1 line.
+====>Randomly capitalize (change case)
+====>Random add space ([ ]* before after ':',','), randomly add ':',',' too ?
+--------------------------------------- KEY PAIR
+
+sould combine keypair and datetime, or combine two keypairs
+only key without value, or vice versa
+[   ] :? [     ]
+rule for $ID, [A-Za-z]*
+capitalize
+
+ngaythangnam \d{5} \d{4} gio \d{4} [A-Za-z]*? 
+St:[\W\d]{3,5}     Rg:\d{1-3}  Ch:\d{3-10} Tr:\d{2-9}
+TRANS. NUMBER: \d{5-10}
+AUTH. CODE: \d{5-10}
+CHK \d{6}
+TBL $NUMBER/\d
+Cashier: [A-Za-z]*
+Cashier: $ID
+Waiter: [A-Za-z]*
+Staff: [A-Za-z]*
+Slip: [A-Za-z]*
+Name: [A-Za-z]*
+Station: [A-Za-z]*
+Table No: \W{n}-\d{n}-\d{n}
+Check No.: \W{n}
+Sales No.: \W{2}-$ID
+------Dine In--------
+Bill No.:\d{3}-\d{6}
+Bill .No:#\d{5-10}
+Trans:     \d{8}
+Check#:\d{6}
+Receipt#:  $ID{15,20}
+Rcpt#: $ID
+Station: $ID{5,9}
+Station: \d{2}
+COUNTER: \d{4}
+RECEIPT:\d{n}/\d{n}[A-Z]{n}
+RECEIPT NO.? :? \d{4-8}
+Order[ ]?# $ID
+Receipt: \d{6}
+Receipt: [$ID ]
+Invoice[ ]?#[ ]*:
+Tax Invoice \d{4-8}
+Cover: \d
+TABLE: \d{1,2}
+Table: $ID{2}
+Membership: $ID
+Invoice Type: [A-Za-z]*
+POS Title: $ID{5,10}
+POS:POS\d{3}
+POS Terminal No : \d
+POS NO.:$ID
+Serial No.:$ID
+Pax: \d
+Operator: [A-Za-z]*
+Card number: $ID
+Customer: [A-Za-z]*
+First name [A-Za-z]*?
+Last name [A-Za-z]*?
+Closed By Staff:
+Status:
+Register:
+Check No.? :?
+Sales No.? :?
+Ordered By:
+Outlet:
+Stall ID:
+Machine No:
+Guest: \d Table: \d
+PAX: ... Svr: ...
+Staff:... Trans:...
+
+-------------------------------------------- DATES
+ngay: (\d|[0123]\d)
+thang: (\d|[01]\d)
+thang: Jan|JAN ....
+nam: (201[78]|1[78])
+thu: Wed|WED|Wednesday
+gio: [012]?\d:\d\d(:\d\d)?[ ]?(AM|PM|am|pm)?
+Date: nam/thang/ngay
+Date: nam/thang/ngay gio
+Date: ngay/thang/nam gio
+Date: ngay thang nam
+Date: ngay-thang-nam gio
+Date:nam-thang-ngay gio
+Date & Time: ...
+Opened Date:
+Closed Date:
+Time: gio
+Time: ngay/thang/nam gio
+TRANSACTION DATE: ngay/thang/nam gio
+Receipt Date: ngay/thang/nam gio
+ngay/thang/nam (thu) gio
+ngay thang nam
+Date & Time: ngay/thang/nam gio
+ngay/thang/nam gio
+gio ngay/thang/nam
+thu ngay thang nam gio
+thang ngay, nam gio
+ngay.thang.nam 
+<-{n}ngay/thang/nam gio-{n}>
+2 AUG' 17 gio
+ntngio Tm:..
+
+----------------------------------------------------------- TOTAL
+Grand Total
+SUBTOTAL
+TOTAL QTY $NUMBER
+Total  $
+Total
+INVOICE TOTAL 
+PURCHASE AMOUNT:     $MONEY
+TOTAL S$:?
+Net Total :?
+Total Payable
+TOTAL AMOUNT
+NET SALES
+Total Due
+Total (SGD):
+
+---------------------------------------------------- $MONEY
+
+$\d{1,2}\.\d0
+-$\d{1,2}\.\d0
+\d{1,2}\.\d0
+-\d{1,2}\.\d0
+\d\.\d0
+<==== replace 0 by \d
+<==== replace 2 by 3
+
+-------------------------------------------------------- LOCATION
+
+combine two regex
+key-value always goes together
+--- lot addr location mall(suffix) zipcode
+-------- addr location | mall | addr | mall addr | addr lot | lot mall (popular) | lot mall addr | lot zipcode | mall lot zipcode | addr lot | lot mall zipcode | zipcode
+--- store (suffix | @mall)
+addr: (No 4, ... (Ave|St) |)
+ 
+04-K1
+#02-106
+$STORE [BM]
+$STORE (Singapore) Pte Ltd
+$STORE (S) PTE LTD
+$STORE SG PTE LTD
+$STORE $MALL
+$ADDR,? $LOCATION,?
+#B1-03 $MALL Shoppers Mall S(\d{6})
+$ADDR Ave \d
+$MALL
+$STORE @ $MALL
+$LOCATION Public Library
+$STORE Pte Ltd
+$ADDR S[tT]
+Singapore \d{6}
+Tel: \d{4} \d{4}
+Company Reg. No. [\d\W]
+$MALL
+$MALL $ADDR
+$ADDR \d?
+No 4, $ADDR
+$ADDR #01-15 & 02-20
+#\d{2}-\d{2} $MALL
+#B1-06 $MALL,? $ADDR,
+#B1-21/22,? $MALL (Shopping Centre)?
+#B1-36 ,Singapore \d{6}
+#04-\d{2,3},? $MALL
+$MALL \d #03-04 (S)\d{6}
+$ADDR,? #01-37/38
+#04-\d{2,3} $MALL S(\d{6})
+\d{6}
+SINGAPRORE
+Singapore \d{6}
+UEN No: [A-Z0-9]{10}
+GST (Reg|NO|No.|No) : M\d-\d{7}-\d
+GST REG : M\d\d{7}M
+GST Reg No: \d\d{8} G
+GST Reg. No. [12]\d-\d{7}-[RWX]
+GST REG. NO. M\d-\d{7}-\d
+GST Registration No.? :? ...
+GST?CO NO:
+GST: ...
+Tax ID: ...gst...
+Company Reg. No. 2\d\d{7}R
+Company Reg. N ...
+CO.REG.NO. : \d{9}[A-Z]
+Co. Reg. No.: ...
+Co. Registration No.: 19\d{7}W
+Bus Reg No. \d{9}[A-Z]
+Biz Reg No \d{9}[A-Z]
+Co. / GST No: ...
+Tel No:...
+Tel: \d{4} \d{4}
+TEL NO.  : \d{4}-\d{4}
+TEL: \d{8}
+Tel: \d{8}
+Tel:\d{8} Fax:\d{8}
+Tel[ ]?/[ ]?Fax: ...
+T \d{8} F \d{8}
+Hotline  : ...
+Email    : ..@...
+Hotline: ... (Mon-Fri 9am-6pm)
+Phone:    +65-\d{4} \d{4}
+FAX:    +65-\d{4} \d{4}
+(65)\d{8}
+----------------------------------------------------------- ITEMS
+Description
+Items
+Qty
+TOTAL SAVINGS $MONEY?
+SUB TOTAL $MONYE?
+Total number of items:
+SUBTTL
+Sub Total :?
+Card Disc :?
+ROUNDING $MoNEY?
+MST/VISA $MONEY?
+Amount 
+GST ON GDS
+VISA
+Visa $MONEY?
+GET 25% OFF WITH MIN
+MASTER
+VISA/MASTER XXXX
+MASTERCARD
+ROUNDING
+CHANGE
+Change Due $MONEY?
+*VISA $MONEY?
+Change $MONEY
+Credit Card VISA : $MONEY?
+GST 7.00%
+GST    7%    $MONEY $MONEY 
+\(GST 7% : $MONEY\)
+7% GST Inclusive
+GST Inclusive $MONEY?
+7% GST[ ]*: $\d\.(90|00|99)
+7% GST:?
+7%GST
+GST ( 7% )
+GST $MONEY?
+GST CHARGES 7%
+TAX@ 7%
+Service Tax( 10%)
+10% Svr Chrg
+10% SVC CHG
+10% Service Charge
+Service Charge 10.00%
+Service Chg(10%)
+Service Charge $MONEY?
+SvCharge 10%
+Payable $MONEY?
+G.S.T.(7%):
+Credit Card -VISA S$
+Auth: $ID
+Tender Visa $MONEY?
+Avg. Pax $MONEY?
+Rounding Adj. $MONEY?
+Plu# \d{5}
+$PRODUCT
+CHANGE $MONEY?
+\d $PRODUCT
+$PRODUCT[ ]*\d[ ]*$MONEY
+\d. $ID{5,15}
+S#$ID{5,15}
+$ID{5,9} $PRODUCT
+\d (pcs|box)  X $MONEY
+\d x $MONEY
+$ID x1? $MONEY?
+Amount Paid: $MONEY
+Grand Total $MONEY
+Sub Total S$:?
+SubTotal
+Total Qty Sold:
+Total Items: \d
+CASH $MONEY
+NETS $MONEY
+TRANSACTION TYPE: [A-Za-z]*?
+ACNT NO. \d{15-25}
+PTS ADDED: $DECIMAL
+UPDATED PTS: $DECIMAL
+EXPIRING PTS: $DECIMAL
+TOTAL PTS: $DECIMAL
+Discount Price :?
+EVERYDAY CARD $MONEY?
+No of Items: \d{1-3}
+Payment Info:
+Signature: __________
+Opening Points (Balance|eStamp) $NUMBER
+Earned Points (Balance|eStamp) $NUMBER
+Closing Points (Balance|eStamp) $NUMBER
+POINTS UNTIL THIS VISIT $NUMBER
+POINTS REGULAR EARNED $NUMBER
+POINTS PROMO EARNED $NUMBER
+POINTS BALANCE  $NUMBER
+*IPC ACCT NO: $ID,C
+IPC Name: [A-Za-z]*?
+PTS Earned: $NUMBER
+PTS Accum.: $NUMBER
+PERIOD END BY: 
+
+------------------------------------------------- SENTENCES
+
+[A-Z]{3}: \d{5,13}
+Loyalty acc.number Last name First name Open Points Balance Earn Points Closing Points Earned eStamp Closing eStamp
+Expiring Pts Home De
+Are you satisfied ? Tell us about your experience at
+Goods Exchange must be in original condition with original receipt within 7 days of purchase. Medicine
+and hygiene-sensitive products are not exchangable or returnable. Thank you. Have a nice day.
+All payments made are *** non-refundable
+ALl items sold are non-refundable
+Items may be exchanged within 7 days of purchase with original receipt with all labels and tags attached
+Refund of difference will not be given
+For goods exchange/refund. please return item in original/salable condition with original receipt within
+7 days of purchase. Medicine, hygiene-sensitive products & Watsons card sold are non-refundable. Thank you.
+Thank you for shopping at $STORE. Goods for exchange must be produced with receipt within 30 days of purchase
+Only unused items in its original packaging can be exchanged. Hygiene-sensitive products are strictly non exchangeable
+Sale items cannot be exchanged or refunded. Retain Receipt for Returns. Other Terms & Conditions  apply.
+Sign up for free as a member now and track your accumulated spend online Upgrade to a VIP member when you spend online within 
+3 months| Terms and& Conditions apply. Home Delivery of ice cream cakes
+Undergarments and earrings cannot be exchanged. See in-store poster for details
+Stamps to be redeemed within 1 month from the date of receipt We welcome your feedback at www.$STORE.com.sg
+We are looking for global franchisees. Get in touch with us. www.$STORE.com. Info@$STORE.com
+happy full price 
+contactus@$STORE.com.sg
+I-ONLINE SHOPPING WWW.$STORE.COM.SG
+approved (contactless) 
+approved
+no signature required
+rewards card stamp
+issued/unredeemed
+Thank you
+Please come again
+www.$STORE.com.sg
+---------Eat In----------
+Website: www.
+Facebook : www.facebook.com/ilovehood
+Thank you See you again ! Thank you Please Come Again Shop online at today !
+******
+POS Title: Cashier
+POS: POS001
+OP:emenu
+Closed Bill
+
+**********
+Kim Cha Set (L)
+Current Balance: \d{3}\.\d{2} ($
+TOTAL DIRECT DISC
+Qualified Amt TapForMore
+PA CARD NO: \d{9}
+AUTH NO: \d{6} SWIPED
+*Net online*
+GST NO MR-850022 => WTH thieu so
+BIZ REG NO 53334=> WTH thieu so
+
+Crispy Chicken
+Carnonara Chicken Stew Salad Dring Set
+Visit us at 
