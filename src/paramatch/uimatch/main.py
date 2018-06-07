@@ -14,19 +14,18 @@ def mergeThenShow(lineName, line, newline):
     #merge 2 lines
     cv2.imshow(newline)
 
-def createControlBoard(boardName, params, updateFunc):
+def createControlBoard(boardName, updateFunc):
 
     def click_and_crop(event, x, y, flags, param):
+        name = 0 #based on mouse location on board
         if event == cv2.EVENT_LBUTTONDOWN:
             pass
-            updateFunc()
+            updateFunc(name, True)
         elif event == cv2.EVENT_LBUTTONUP:
             pass
-            updateFunc()
+            updateFunc(name, False)
             
     board = np.ones(1000, 1000, 3)
-    for key, val in params.iteritems():
-        params[key] = None #update pa
     #add callback to board
     cv2.setMouseCallback(boardName, click_and_crop)
     return board
@@ -40,15 +39,19 @@ if __name__ == '__main__':
         pipeline = CMNDPipeline()
         # add font
         # init Scale Param
-        pipeline.initParams()
+        pipeline.initParams(gt_text = txt)
         
         
         # show image with callback to edit another image, dynamic change text ... hum
-        def updateFunc():
+        def updateFunc(name, inc):
+            if inc:
+                pipeline.params[name].inc()
+            else:
+                pipeline.params[name].dec()
             newline = pipeline.gen()
-            mergeThenShow(LINE_NAME, line, linenew)
+            mergeThenShow(LINE_NAME, line, newline)
             
-        controlboard = createControlBoard(BOARD_NAME, pipeline.params, updateFunc)
+        controlboard = createControlBoard(BOARD_NAME, updateFunc)
         cv2.imshow(BOARD_NAME, controlboard)
         
         
