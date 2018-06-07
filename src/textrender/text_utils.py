@@ -128,7 +128,7 @@ class RenderFont(object):
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
 
         bbs = []
-        space = font.get_rect('O')
+        space = font.get_rect('0')
         x = 0 # carriage-return
         y = line_spacing # line-feed
 
