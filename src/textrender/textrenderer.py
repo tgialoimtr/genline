@@ -25,42 +25,37 @@ class RelPosRenderer(object):
             relposmat = RelPosSimple(0.0,0.0)
             
         surface = np.zeros(shape, dtype=np.uint8)
-        beforeChar = txt[0]
-        y0 = ybaseline     
-        self.charfont[beforeChar].setFont(None, height)
-        charbb, charmask = self.charfont[beforeChar].render((x0, y0), surface.shape)
-        
-#         print charmask.shape
-#         print charmask.dtype
-#         print surface.shape
-#         print surface.dtype
-        
-        
-        surface = cv2.bitwise_or(surface, charmask)
-        charmasks = [charmask]
-        charbbs = [charbb]
+        beforeChar = None
+        y0 = ybaseline
+        charmasks = []
+        charbbs = []
         for c in txt:
             self.charfont[c].setFont(None, height)
             if c == ' ':
                 x0 += self.charfont[c].spaceWidth()
                 continue
-            temp = relposmat.at((beforeChar, c))
-            spacing_hor = temp.hor
-            spacing_ver = temp.ver
+            if beforeChar is not None:
+                temp = relposmat.at((beforeChar, c))
+                spacing_hor = temp.hor
+                spacing_ver = temp.ver
+            else:
+                spacing_hor = 0.0
+                spacing_ver = 0.0                
             normHeight = self.charfont[c].normHeight()
-            dx = spacing_hor*normHeight
-            dy = spacing_ver*normHeight
-            charbb, charmask = self.charfont[c].render((x0 + dx, y0 + dy), surface.shape)
+            x0 += spacing_hor*normHeight
+            y0 += spacing_ver*normHeight
+            charbb, charmask = self.charfont[c].render((x0, y0), surface.shape)
             surface = cv2.bitwise_or(surface, charmask)
             charmasks.append(charmask)
             x0 += charbb.width
-            charbbs.append(np.array(charbb)) 
+            charbbs.append(np.array(charbb))
+            beforeChar = c
         return surface, charmasks, charbbs
             
             
     def renderFit(self, txt, height, relposmat=None, relposmat2=None):
         shape = (4*height, 200)
-        ybaseline = height*2
+        ybaseline = 2*height
         surface, charmasks, charbbs = self.render(txt, shape, ybaseline, height, 0, relposmat, relposmat2)
         
         #crop
@@ -68,23 +63,20 @@ class RelPosRenderer(object):
         rect = rect.unionall(charbbs)
         
         pad = 0
-        arr = surface; bbs = np.array(charbbs)
+        arr = surface
+        bbs = charbbs
         
         rect = np.array(rect)
         rect[:2] -= pad
         rect[2:] += 2*pad
-        print rect
         v0 = [max(0,rect[0]), max(0,rect[1])]
-        print v0
         v1 = [min(arr.shape[1], rect[0]+rect[2]), min(arr.shape[0], rect[1]+rect[3])]
-        print v1
         arr = arr[v0[1]:v1[1],v0[0]:v1[0],...]
-        cv2.imwrite('/home/loitg/d.png', arr)
         charmasks = [mask[v0[1]:v1[1],v0[0]:v1[0],...] for mask in charmasks]
-        for i in xrange(len(bbs)):
-            bbs[i,0] -= v0[0]
-            bbs[i,1] -= v0[1]
-        ybaseline -= v0[0]
+        for bb in bbs:
+            bb[0] -= v0[0]
+            bb[1] -= v0[1]
+        ybaseline -= v0[1]
         return arr, charmasks, bbs, ybaseline
         
 
@@ -99,7 +91,7 @@ if __name__ == '__main__':
     rd = RelPosRenderer(charset, PrintedChar)
     
     ### FONTS
-    basefont = '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/PRINTF Regular.ttf'
+    basefont = '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF'
     rd.charfont = {}
     for c in charset:
         rd.charfont[c] = PrintedChar(c)
@@ -109,14 +101,14 @@ if __name__ == '__main__':
     mat.mat[('a','b')].hor = -0.5
     mat.mat[('1','2')].hor = +0.5
     
-    txt = 'abc123'
-    mask, charmasks, charbbs, _ = rd.renderFit(txt, 40, mat)
-    
-    cv2.imwrite('/home/loitg/a.png', mask)
-    print 'done1'
-    cv2.imshow('/home/loitg/b.png', charmasks[0])
-    print 'done 2'
-#     cv2.waitKey(-1)
+    txt = 'abc123mn'
+    mask, charmasks, charbbs, ybaseline = rd.renderFit(txt, 40, mat)
+    cv2.imshow('mask', mask)
+    for img, bb in zip(charmasks,charbbs):
+        cv2.imshow('mask0', img)
+        aaa = mask[bb[1]:(bb[1]+bb[3]), bb[0]:(bb[0]+bb[2])]
+        cv2.imshow('bb0', aaa)
+        cv2.waitKey(-1)
     sys.exit(0)
     
     

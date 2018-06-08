@@ -42,6 +42,8 @@ class PrintedChar(object):
                     self.baseheight = height
         if reinit:
             self.font = freetype.Font(self.basefont, size=self.baseheight)
+            self.font.antialiased = True
+            self.font.origin = True
             self.space = self.font.get_rect('O')
         
     def spaceWidth(self):
@@ -55,10 +57,8 @@ class PrintedChar(object):
         y = int(y)
         pgsurf = pygame.Surface((shape[1], shape[0]), pygame.locals.SRCALPHA, 32)
         bound = self.font.render_to(pgsurf, (x,y), self.ch)
-        
         bound.x = x + bound.x
         bound.y = y - bound.y
-                
         mask = pygame.surfarray.pixels_alpha(pgsurf)
         mask = mask.swapaxes(0,1)
         return bound, mask
