@@ -8,15 +8,13 @@ import numpy as np
 import pygame
 import sys
 import cv2
-from char import PrintedChar, HandWrittenChar
+from font import TTFFont
 from relpos_matrix import RelPosSimple, RelPos4D
     
 class RelPosRenderer(object):
     
-    def __init__(self, charset, charclass):
-#         self.charset = charset
-#         self.charfont = {}
-        pass
+    def __init__(self, charset, charfont=None):
+        self.charfont = charfont
         
     
     
@@ -30,9 +28,10 @@ class RelPosRenderer(object):
         charmasks = []
         charbbs = []
         for c in txt:
-            self.charfont[c].setFont(None, height)
+            self.charfont.overWrite(c, height, None)
+#             self.charfont[c].setFont(None, height)
             if c == ' ':
-                x0 += self.charfont[c].spaceWidth()
+                x0 += self.charfont.spaceWidth()
                 continue
             if beforeChar is not None:
                 temp = relposmat.at((beforeChar, c))
@@ -41,10 +40,10 @@ class RelPosRenderer(object):
             else:
                 spacing_hor = 0.0
                 spacing_ver = 0.0                
-            normHeight = self.charfont[c].normHeight()
+            normHeight = self.charfont.normHeight()
             x0 += spacing_hor*normHeight
             y0 += spacing_ver*normHeight
-            charbb, charmask = self.charfont[c].render((x0, y0), surface.shape)
+            charbb, charmask = self.charfont.render(c, (x0, y0), surface.shape)
             surface = cv2.bitwise_or(surface, charmask)
             charmasks.append(charmask)
             x0 += charbb.width
@@ -82,24 +81,17 @@ class RelPosRenderer(object):
 
 
 if __name__ == '__main__':
-
-    pygame.init()
-    
-    
     charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
-    
-    rd = RelPosRenderer(charset, PrintedChar)
-    
+     
     ### FONTS
     basefont = '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF'
-    rd.charfont = {}
-    for c in charset:
-        rd.charfont[c] = PrintedChar(c)
-        rd.charfont[c].setFont(basefont, 40)
     ### RelPos
     mat = RelPos4D(charset)
-    mat.mat[('a','b')].hor = -0.5
+    mat.mat[('a','b')].hor = -0.1
     mat.mat[('1','2')].hor = +0.5
+    
+    pf = TTFFont(charset, 40, basefont)
+    rd = RelPosRenderer(charset, pf)
     
     txt = 'abc123mn'
     mask, charmasks, charbbs, ybaseline = rd.renderFit(txt, 40, mat)
@@ -113,11 +105,11 @@ if __name__ == '__main__':
     
     
     rd2 = RelPosRenderer(charset, HandWrittenChar)
-    rd2.charfont = HandWrittenChar.createFromDB('') #<=== TODO
+    rd2.charfont = HandWrittenChar.createFromDB('/home/loitg/ocr/by_write/', "NIST")
     ### RelPos
     mat = RelPosSimple()
     txt = 'abc123'
-    mask, charmasks, charbbs = rd.render(txt, mat)
+    mask, charmasks, charbbs = rd2.renderFit(txt, mat)
     
     cv2.imshow('rd', mask)
     cv2.imshow('rd0', charmasks[0])

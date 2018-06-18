@@ -3,7 +3,6 @@ Created on Jun 5, 2018
 
 @author: loitg
 '''
-import pygame
 import pygame.locals
 from pygame import freetype
 import numpy as np
@@ -63,34 +62,4 @@ class PrintedChar(object):
         mask = mask.swapaxes(0,1)
         return bound, mask
 
-class HandWrittenChar(object):
-    
-    @staticmethod
-    def createFromDB(database_dir):
-        font = {}
-        dau = {}
-        thanh = {}
-        
-        font['a'] = HandWrittenChar()
-        
-        return font
-    
-    def __init__(self):
-        # read database
-        self.samples = []
-
-    def __distort(self):
-        #pick random sample, then distort
-        pass
-    
-    def render(self, shape):
-        #distort
-        
-        #stroke width
-        self.strokeWidth
-        
-        
-        return surface   
-        
-    
     
