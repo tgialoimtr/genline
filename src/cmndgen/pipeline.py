@@ -3,6 +3,8 @@ Created on Jun 5, 2018
 
 @author: loitg
 '''
+import cv2
+import sys
 import numpy as np
 from paramatch.collections import Params
 from textrender.textrenderer import RelPosRenderer
@@ -15,42 +17,33 @@ class CMNDPipeline(object):
     '''
 
     def __init__(self, params):
-        self.txt = None
-        self.font = Printed()
-        self.renderer = None
+        self.txt = '123'
+        self.params = Params()        
         
-    def initParams(self, gt_text):
-        self.txt = gt_text
-        self.params = Params()
-        self.renderer = RelPosRenderer()
+        ### FONTS
+        self.charset = '0123456789'
+        basefont = '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF'
+        self.charfont = TTFFont(self.charset, 40, basefont)
+        ### RelPos
+        self.mat = RelPos4D(self.charset)
+        self.mat.mat[('a','b')].hor = -0.1
+        self.mat.mat[('1','2')].hor = +0.5
         
+        
+        self.renderer = RelPosRenderer(self.charset, self.charfont)
         self.renderer.a = self.params.new()
         
-        
-        
+ 
         
     def gen(self):
-        
-        line = np.array((32,100))
+        mask, charmasks, charbbs, ybaseline = self.renderer.renderFit(self.txt, 40, self.mat)
+
         return line
     
     
     
 if __name__ == '__main__':
-    charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
-     
-    ### FONTS
-    basefont = '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF'
-    ### RelPos
-    mat = RelPos4D(charset)
-    mat.mat[('a','b')].hor = -0.1
-    mat.mat[('1','2')].hor = +0.5
-    
-    pf = TTFFont(charset, 40, basefont)
-    rd = RelPosRenderer(charset, pf)
-    
-    txt = 'abc123mn'
-    mask, charmasks, charbbs, ybaseline = rd.renderFit(txt, 40, mat)
+
     cv2.imshow('mask', mask)
     for img, bb in zip(charmasks,charbbs):
         cv2.imshow('mask0', img)
