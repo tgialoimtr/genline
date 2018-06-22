@@ -7,6 +7,7 @@ import random
 import numpy as np
 import json
 from flatten_json import flatten, unflatten
+from pip.utils.outdated import SELFCHECK_DATE_FMT
 
 
 
@@ -70,7 +71,7 @@ class GenerativeParam(object):
         self.dtype = dtype
         self.values = []
         
-        self.uniform_gen_params = {'enable':True, 
+        self.uniform_gen_params = {'enable':False, 
                                    'lower':0,
                                    'upper':0
                                    }
@@ -98,6 +99,15 @@ class GenerativeParam(object):
         self.dummy_gen_params =  {'enable':False, 
                                    'value': 0
                                     }
+    
+    def __str__(self):
+        if self.uniform_gen_params['enable']:
+            return str(self.uniform_gen_params['lower']) + ':' + str(self.uniform_gen_params['upper'])
+        elif self.gaussian_gen_params['enable']:
+            return str(self.gaussian_gen_params['mean']) + '+-' + str(self.gaussian_gen_params['std'])
+        elif self.dummy_gen_params['enable']:
+            return str(self.dummy_gen_params['value'])
+        
         
     def get_x(self):
         if self.uniform_gen_params['enable']:
@@ -176,12 +186,12 @@ def checkAndConvertObject(rawval):
                            'mean': float(temp[0]),
                            'std': float(temp[1])
                             }
-    elif '-' in rawval[1:]:
-        temp = rawval[1:].split('-')
+    elif ':' in rawval:
+        temp = rawval.split(':')
         assert len(temp) == 2, 'Wrong format'
         ret = GenerativeParam()
         ret.uniform_gen_params =  {'enable':True, 
-                           'lower': float(rawval[0] + temp[0]),
+                           'lower': float(temp[0]),
                            'upper': float(temp[1])
                             }
     else:
@@ -201,8 +211,12 @@ class GenerativeParams(object):
             self.flat_params[key] = val
         self.params = unflatten(self.flat_params)
     
-    def represent(self):
-        return '{}'
+    def __str__(self):
+        ret_dict = {}
+        for key in self.flat_params:
+            ret_dict[key] = str(self.flat_params[key])
+        ret_dict = unflatten(ret_dict)
+        return json.dumps(ret_dict, indent=4)
     
     def get(self, *args):
         key = getKey(args)
@@ -236,8 +250,8 @@ class ChangableParams(object):
             self.flat_params[key] = val
         self.params = unflatten(self.flat_params)
 
-    def represent(self):
-        return '{}'
+    def __str__(self):
+        return json.dumps(self.params, indent=4)
     
     def get(self, *args):
         key = getKey(args)
@@ -263,7 +277,7 @@ if __name__ == "__main__":
     gp = GenerativeParams()
     gp.reset(''' {
     "mat-base":"0.7",
-    "rel-width" : {"a": "1.2+-0.1", "b":"0.3-0.6" }, 
+    "rel-width" : {"a": "1.2+-0.1", "b":"0.3:0.6" }, 
     "rel-pos-x" : {"ab": 0.01, "VA": -0.03},
     "rel-pos-y" : {"n":1.07}
     
@@ -277,10 +291,16 @@ if __name__ == "__main__":
     
     } ''')
 
-
+    gp.set('rel-pos-y_n', '-6:-3')
+    print gp.get('rel-pos-y_n')
+    print gp.get('rel-pos-y_n')
     print gp.get('rel-pos-y_n')
     
+    cp.set('rel-pos-y','n', -3.4)
     print cp.get('rel-pos-y','n')
+    print cp.get('rel-pos-x','VA')
            
+    print str(cp)
+    print str(gp)
     
      
