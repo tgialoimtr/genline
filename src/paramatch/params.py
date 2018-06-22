@@ -4,7 +4,10 @@ Created on Apr 25, 2018
 @author: loitg
 '''
 import random
-import numpy as np 
+import numpy as np
+import json
+from flatten_json import flatten, unflatten
+
 
 
 class RangeParam(object):
@@ -90,16 +93,194 @@ class GenerativeParam(object):
                                     }
         self.gaussian_gen_params =  {'enable':False, 
                                    'mean': middle,
-                                   'upper': onethird # fix this
+                                   'std': onethird
+                                    }
+        self.dummy_gen_params =  {'enable':False, 
+                                   'value': 0
                                     }
         
     def get_x(self):
         if self.uniform_gen_params['enable']:
             return random.uniform(self.uniform_gen_params['lower'], self.uniform_gen_params['upper'])
-        if self.uniform_gen_params['enable']:
-            return np.random.normal(self.uniform_gen_params['mean'], self.uniform_gen_params['std'], 1)[0]
+        if self.gaussian_gen_params['enable']:
+            return np.random.normal(self.gaussian_gen_params['mean'], self.gaussian_gen_params['std'], 1)[0]
+        if self.dummy_gen_params['enable']:
+            return self.dummy_gen_params['value']
 
     def set_x(self, value):
         raise Exception
 
-    x = property(get_x,set_x)    
+    x = property(get_x,set_x)   
+    
+
+# class GenerativeParams(object):
+#         
+#     def __init__(self, jsonStr):
+#         self.reset(jsonStr)
+#     
+#     def reset(self, jsonStr):
+#         raw = json.loads(jsonStr)
+#         flatten_dict = flatten(raw)
+#         for key in flatten_dict:
+#             if mode == self.MODE_CHANGING:
+#                 mapping = int
+#             else:
+#                 mapping = 
+#             flatten_dict[key] = 
+# 
+#         if mode == self.MODE_CHANGING:
+#             self.changables = unflatten(flatten_dict)
+#         else:
+#             self.generatives = unflatten(flatten_dict)
+#     def represent(self):
+#         return '{}'
+#     
+#     def get(self, key):
+#         pass
+#     
+#     def set(self, key, value):
+#         pass
+
+def getKey(args):
+    if len(args) == 0:
+        return args[0]
+    else:
+        return '_'.join(args)
+    
+def checkAndConvert(rawval):
+    try:
+        ret = float(rawval)
+        rettype = float
+    except ValueError:
+        ret = int(rawval)
+        rettype = int
+    return ret, rettype
+
+def checkAndConvertObject(rawval):
+    try:
+        temp,dtype = checkAndConvert(rawval)
+        if dtype in [int, float]:
+            ret = GenerativeParam()
+            ret.dummy_gen_params =  {'enable':True, 
+                               'value': temp
+                                }
+            return ret
+    except ValueError:
+        pass
+
+    if '+-' in rawval:
+        temp = rawval.split('+-')
+        assert len(temp) == 2, 'Wrong format, one +- only'
+        ret = GenerativeParam()
+        ret.gaussian_gen_params =  {'enable':True, 
+                           'mean': float(temp[0]),
+                           'std': float(temp[1])
+                            }
+    elif '-' in rawval[1:]:
+        temp = rawval[1:].split('-')
+        assert len(temp) == 2, 'Wrong format'
+        ret = GenerativeParam()
+        ret.uniform_gen_params =  {'enable':True, 
+                           'lower': float(rawval[0] + temp[0]),
+                           'upper': float(temp[1])
+                            }
+    else:
+        raise ValueError
+    return ret
+class GenerativeParams(object):
+        
+    def __init__(self, jsonStr=None):
+        if jsonStr is not None:
+            self.reset(jsonStr)
+        
+    def reset(self, jsonStr):
+        raw = json.loads(jsonStr)
+        self.flat_params = flatten(raw)
+        for key in self.flat_params:
+            val = checkAndConvertObject(self.flat_params[key])
+            self.flat_params[key] = val
+        self.params = unflatten(self.flat_params)
+    
+    def represent(self):
+        return '{}'
+    
+    def get(self, *args):
+        key = getKey(args)
+        if key in self.params:
+            ret = self.params[key]
+        elif key in self.flat_params:
+            ret = self.flat_params[key]
+        return ret.x
+    
+    def set(self, *args):
+        assert len(args) > 1, 'key,..., value'
+        key = getKey(args[:-1])
+        val = checkAndConvertObject(args[-1])
+        if key in self.params:
+            self.params[key] = val
+        elif key in self.flat_params:
+            self.flat_params[key] = val
+    
+#consider when init: string of list => list; args => object; 
+class ChangableParams(object):
+        
+    def __init__(self, jsonStr=None):
+        if jsonStr is not None:
+            self.reset(jsonStr)
+    
+    def reset(self, jsonStr):
+        raw = json.loads(jsonStr)
+        self.flat_params = flatten(raw)
+        for key in self.flat_params:
+            val, dtype = checkAndConvert(self.flat_params[key])
+            self.flat_params[key] = val
+        self.params = unflatten(self.flat_params)
+
+    def represent(self):
+        return '{}'
+    
+    def get(self, *args):
+        key = getKey(args)
+        if key in self.params:
+            ret = self.params[key]
+        elif key in self.flat_params:
+            ret = self.flat_params[key]
+        return ret
+    
+    def set(self, *args):
+        assert len(args) > 1, 'key,..., value'
+        key = getKey(args[:-1])
+        val, dtype = checkAndConvert(args[-1])
+        if key in self.params:
+            self.params[key] = val
+        elif key in self.flat_params:
+            self.flat_params[key] = val
+    
+
+
+if __name__ == "__main__":
+    cp = ChangableParams()
+    gp = GenerativeParams()
+    gp.reset(''' {
+    "mat-base":"0.7",
+    "rel-width" : {"a": "1.2+-0.1", "b":"0.3-0.6" }, 
+    "rel-pos-x" : {"ab": 0.01, "VA": -0.03},
+    "rel-pos-y" : {"n":1.07}
+    
+    } ''')
+
+    cp.reset(''' {
+    "mat-base":"0.7",
+    "rel-width" : {"a": 1.2, "b":"-0.3" },
+    "rel-pos-x" : {"ab": 0.01, "VA": -0.03},
+    "rel-pos-y" : {"n":1.07}
+    
+    } ''')
+
+
+    print gp.get('rel-pos-y_n')
+    
+    print cp.get('rel-pos-y','n')
+           
+    
+     

@@ -7,28 +7,20 @@ import cv2
 import sys
 import random, math
 import numpy as np
+from paramatch.params import Params
 from textrender.textrenderer import RelPosRenderer
 from textrender.font import TTFFont
 from textrender.relpos_matrix import RelPos4D
 from textgen.items import RegExGen
 from light.colorize3_poisson import Layer
 
+
+
 def hsv2bgr(col_hsv):
     assert len(col_hsv) == 3
     col = cv2.cvtColor(np.array(col_hsv, 'uint8').reshape((1,1,3)), cv2.COLOR_HSV2BGR)
     return col[0,0]
 
-
-#consider when init: string of list => list; args => object; 
-class Params(object):
-    def __init__(self, jsonStr):
-        self.reset(jsonStr)
-    
-    def reset(self, jsonStr):
-        pass
-
-    def represent(self):
-        return '{}'
 
 class CMNDPipeID(object):
     '''
@@ -180,7 +172,13 @@ class CMNDPipeID(object):
 if __name__ == '__main__':
     pipe_id = CMNDPipeID(80, 608)
     txtgen = RegExGen(r'[0-3]\d{8}')
-    pipe_id.p.reset('', 'generator')
+    pipe_id.p.reset(''' {
+    "mat-base":"0.7",
+    "rel-width" : {"a": "1.2+-0.1", "b":"0.3-0.6" }, 
+    "rel-pos-x" : {"ab": 0.01, "VA": -0.03},
+    "rel-pos-y" : {"n":0.07}
+    
+    } ''', 'generator-uniform' 'generator-gaussian')
     
     for i in range(10):
         pipe_id.txt = txtgen.gen()
