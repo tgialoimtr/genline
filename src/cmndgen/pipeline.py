@@ -5,7 +5,7 @@ Created on Jun 5, 2018
 '''
 import cv2
 import sys
-import random, math
+import random
 import numpy as np
 from paramatch.params import Params
 from textrender.textrenderer import RelPosRenderer
@@ -31,7 +31,7 @@ class CMNDPipeID(object):
         self.height = height
         self.width = width
         self.txt = '123'
-        self.params = Params()        
+        self.p = Params()        
         
         ### FONTS
         self.charset = '0123456789'
@@ -44,60 +44,9 @@ class CMNDPipeID(object):
         
         
         self.renderer = RelPosRenderer(self.charset, self.charfont)
+    
 
-        
-    @staticmethod
-    def sineWave(x0, y0, length, amp, wavelength, angle=0, phase=0):
-        x = np.arange(x0 - length/2, x0 + length/2, 2)
-        B = np.array(x, 'float')
-        o = np.ones_like(B, float)
-        for i, xx in enumerate(x):
-            B[i] = math.sin(2.0*math.pi*(xx-x[0])/wavelength + phase)
-        B *= amp
-        B += y0
-        datapoints = np.vstack((x,B,o))
-        rotM = cv2.getRotationMatrix2D((x0,y0),angle,1)
-        datapoints = rotM.dot(datapoints)
-        datapoints = datapoints[:2,].astype(np.int32).T
-        return datapoints
     
-    def buildGuillocheBGSo(self, height, angel):
-        alpha= np.zeros((self.height, self.width),'uint8')
-        dy = height*1.0/5
-        x0 = self.x0
-        y0 = self.y0 - height/2
-        amp = self.p['gui_amp']
-        wavelength = self.p.new('wavelength', dy*4, freeze=True).x
-        length = self.p.new('length', self.height*7, paramrange=(self.height*5, self.height*9), freeze=True).x
-        phase = random.randint(0, 360)
-        thick = random.randint(1, 2)
-        for i in range(6):
-            pts = self.sineWave(x0, int(i*dy + y0), length, amp, wavelength, phase=phase)
-            cv2.polylines(alpha, [pts], isClosed=False, color=255, thickness=thick)
-        rotM = cv2.getRotationMatrix2D((x0,y0),angel,1)
-        alpha = cv2.warpAffine(alpha,rotM,(alpha.shape[1], alpha.shape[0]))
-        
-        return Layer(alpha=alpha, color=self.sodo_col)
-    
-    def buildGuillocheBG(self):
-        alpha= np.zeros((self.height, self.width),'uint8')
-        amp = random.randint(self.height/7, self.height/5)
-        wavelength = random.randint(self.height/4, self.height/2)
-        thick = random.randint(1,2)
-        angle= random.uniform(0.0, 160.0)
-        n = random.randint(15,30)
-        y0 = random.randint(20,30)
-        dy = (self.height - y0)/n
-        x0 = random.randint(20,30)
-        dx = (self.width - x0)/n
-        
-        for i in range(n):
-            x0 += dx + random.randint(-2,2)
-            y0 += dy + random.randint(-2,2)
-            pts = self.sineWave(x0, y0, int(self.width*0.8), amp, wavelength, angle)
-            cv2.polylines(alpha, [pts], isClosed=False, color=255, thickness=thick)
-        
-        return Layer(alpha=alpha, color=self.guilloche_col)
     
     def buildCommonParams(self):
         bg_col_hsv = (random.randint(122,220)*180/360, random.randint(1,16)*255/100, random.randint(70,100)*255/100)
@@ -178,7 +127,7 @@ if __name__ == '__main__':
     "rel-pos-x" : {"ab": 0.01, "VA": -0.03},
     "rel-pos-y" : {"n":0.07}
     
-    } ''', 'generator-uniform' 'generator-gaussian')
+    } ''')
     
     for i in range(10):
         pipe_id.txt = txtgen.gen()
