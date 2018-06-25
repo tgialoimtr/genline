@@ -29,7 +29,7 @@ class ShootEffect(object):
     # mask
     def matnet(self, mask):
         nplaces = int(mask.shape[1] / mask.shape[0] * 40 * (np.random.rand() +0.5) )
-        holesmask = noiseMask(mask, nplaces=nplaces, relative_r=0.1, strength=(0.3,0.8), bsz=1.0)
+        holesmask = noiseMask(mask, nplaces=nplaces, relative_r=0.2, strength=(0.3,0.8), bsz=1.0)
         return (mask*(1.0-holesmask)).astype(np.uint8)
     
     # textmask
@@ -38,7 +38,13 @@ class ShootEffect(object):
         idtextmask = cv2.dilate(idtextmask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel,kernel)))
         nhoe = np.random.uniform(0.5, 1.0)
         return idtextmask * nhoe
-        
+
+    # mask
+    def heterogeneous0(self, line):
+        nplaces = int(line.shape[1] / line.shape[0] * 5 * (np.random.rand()+0.5))
+        holesmask = 1.0 - noiseMask(line[:,:], nplaces=nplaces, relative_r=0.5, strength=(0.05, 0.15), bsz=line.shape[0]/2)
+        line = line*holesmask
+        return line.astype(np.uint8)        
         
     # color image
     def heterogeneous(self, line):
@@ -60,14 +66,20 @@ class ShootEffect(object):
     def blur(self, mask):
         (h,_) = mask.shape[:2]
         ksz = h//4*2+1
-        bszx= 2*np.random.rand()
-        bszy= 2*np.random.rand()
-        if bszx + bszy > 2.0:
+        bszx= 3*np.random.rand()
+        bszy= 3*np.random.rand()
+        if bszx + bszy > 4.0:
             return mask
         else:
             mask = cv2.GaussianBlur(mask,(ksz,ksz),sigmaX=bszx, sigmaY=bszy)
             return mask.astype(np.uint8)
-    
+    # mask / grayscale
+    def addnoise0(self, line):
+        noises = np.random.randn(*line.shape[:2])*np.random.randint(1,10)
+        line = (line + noises)
+        line = np.clip(line, 0, 255).astype(np.uint8)
+        return line
+       
     # color image
     def addnoise(self, line):
         noises = np.random.randn(*line.shape[:2])*np.random.randint(1,10)
@@ -75,13 +87,21 @@ class ShootEffect(object):
         line = (line + noises)
         line = np.clip(line, 0, 255).astype(np.uint8)
         return line
+  
+    # color image
+    def colorBlob0(self, line):
+        colormask = noiseMask(line[:,:], nplaces=3, relative_r=0.5, strength=(0.2,0.2), bsz=0.1)
+        logo_cl = np.random.randint(150,250)
+        rs = (((1-colormask)*1.0)[:,:] * line
+                    + colormask[:,:]*logo_cl) 
+        return np.clip(rs,0,255).astype(np.uint8)
     
     # color image
     def colorBlob(self, line):
         colormask = noiseMask(line[:,:,0], nplaces=3, relative_r=0.5, strength=(0.2,0.2), bsz=0.1)
         logo_cl = np.random.randint(150,250, size=3)
         rs = (((1-colormask)*1.0)[:,:,np.newaxis] * line
-                    + colormask[:,:,np.newaxis]*logo_cl    ) 
+                    + colormask[:,:,np.newaxis]*logo_cl) 
         return np.clip(rs,0,255).astype(np.uint8)
         
     

@@ -50,15 +50,17 @@ class BGGuiCMNDSo(object):
                 self.params[key] = kwargs[key]
         
     def render(self, (x,y), shape):
+        x = int(x)
+        y = int(y)
         alpha= np.zeros(shape,'uint8')
         dy = self.params['height']*1.0/5
         x0 = x
-        y0 = y - self.params['height']/2
+        y0 = y - int(self.params['height'])/2
         amp = self.params['amp']
-        wavelength = self.params['wavelength']
-        length = self.params['length']
+        wavelength = int(self.params['wavelength'])
+        length = int(self.params['length'])
         phase = random.randint(0, 360)
-        thick = self.params['thick']
+        thick = int(self.params['thick'])
         for i in range(6):
             pts = sineWave(x0, int(i*dy + y0), length, amp, wavelength, phase=phase)
             cv2.polylines(alpha, [pts], isClosed=False, color=255, thickness=thick)
@@ -114,21 +116,25 @@ class CMNDCircle(object):
                 self.params[key] = kwargs[key]
                 
     def render(self, (x,y), shape):
+        x = int(x)
+        y = int(y)
         alpha= np.zeros(shape,'uint8')
         R1 = self.params['R1']
         R2 = self.params['R2']
         a1 = math.pi * self.params['a1']/180.0
         a2 = math.pi * self.params['a2']/180.0
-        da = 2.0*math.pi/self.params['n']
-        for i in range(self.params['n']):
+        n = int(self.params['n'])
+        thick = int(self.params['thick'])
+        da = 2.0*math.pi/n
+        for i in range(n):
             a1 += da; a2 += da
             x0 = x + int(R1*math.cos(a1)); y0 = y + int(R1*math.sin(a1))
             x1 = x + int(R2*math.cos(a2)); y1 = y + int(R2*math.sin(a2))
-            cv2.line(alpha, (x0,y0), (x1,y1), color=255)
+            cv2.line(alpha, (x0,y0), (x1,y1), color=255, thickness=thick)
             
             x0 = x + int(R1*math.cos(a2)); y0 = y + int(R1*math.sin(a2))
             x1 = x + int(R2*math.cos(a1)); y1 = y + int(R2*math.sin(a1))
-            cv2.line(alpha, (x0,y0), (x1,y1), color=255)           
+            cv2.line(alpha, (x0,y0), (x1,y1), color=255, thickness=thick)           
             
         return alpha
 

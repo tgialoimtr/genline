@@ -213,7 +213,10 @@ class GenerativeParams(object):
             self.reset(jsonStr)
         
     def reset(self, jsonStr):
-        raw = json.loads(jsonStr)
+        if isinstance(jsonStr, string_types):
+            raw = json.loads(jsonStr)
+        else:
+            raw = jsonStr
         self.flat_params = flatten(raw)
         for key in self.flat_params:
             val = checkAndConvertObject(self.flat_params[key])
@@ -234,6 +237,12 @@ class GenerativeParams(object):
         elif key in self.flat_params:
             ret = self.flat_params[key]
         return ret.x
+    
+    def getChangable(self):
+        ret = {}
+        for key, gener in self.flat_params.iteritems():
+            ret[key] = gener.x
+        return unflatten(ret)
     
     def set(self, *args):
         assert len(args) > 1, 'key,..., value'
