@@ -10,7 +10,7 @@ import os, sys
 from glob import glob
 import pygame
 from mnist import MNIST
-from char import PrintedChar
+from textrender.char import PrintedChar
 from utils.common import summarize
 
 class TTFFont(object):
@@ -20,11 +20,11 @@ class TTFFont(object):
         self.charfont = {}
         for c in charset:
             self.charfont[c] = PrintedChar(c)
-            self.charfont[c].setFont(basefont, 40)
+            self.charfont[c].setFont(basefont, height)
         
     
-    def overWrite(self, ch, newheight=None, newbasefont=None):
-        self.charfont[ch].setFont(newbasefont, newheight)
+    def overWrite(self, ch, newheight=None, newbasefont=None, ratios=(1.0,1.0)):
+        self.charfont[ch].setFont(newbasefont, newheight, ratios)
     
     def render(self, ch, (x,y), shape=None):
         return self.charfont[ch].render((x,y), shape)

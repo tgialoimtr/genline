@@ -8,7 +8,7 @@ import numpy as np
 import json
 from flatten_json import flatten, unflatten
 from pip.utils.outdated import SELFCHECK_DATE_FMT
-
+from six import string_types
 
 
 class RangeParam(object):
@@ -162,8 +162,14 @@ def checkAndConvert(rawval):
         ret = float(rawval)
         rettype = float
     except ValueError:
-        ret = int(rawval)
-        rettype = int
+        try:
+            ret = int(rawval)
+            rettype = int
+        except ValueError:
+            if isinstance(rawval, string_types):
+                return rawval, str
+            else:
+                raise ValueError
     return ret, rettype
 
 def checkAndConvertObject(rawval):
@@ -195,7 +201,10 @@ def checkAndConvertObject(rawval):
                            'upper': float(temp[1])
                             }
     else:
-        raise ValueError
+        ret = GenerativeParam()
+        ret.dummy_gen_params =  {'enable':True, 
+                           'value': temp
+                            }
     return ret
 class GenerativeParams(object):
         
@@ -232,8 +241,10 @@ class GenerativeParams(object):
         val = checkAndConvertObject(args[-1])
         if key in self.params:
             self.params[key] = val
+            self.flat_params = flatten(self.params)
         elif key in self.flat_params:
             self.flat_params[key] = val
+            self.params = unflatten(self.flat_params)
     
 #consider when init: string of list => list; args => object; 
 class ChangableParams(object):
@@ -267,8 +278,10 @@ class ChangableParams(object):
         val, dtype = checkAndConvert(args[-1])
         if key in self.params:
             self.params[key] = val
+            self.flat_params = flatten(self.params)
         elif key in self.flat_params:
             self.flat_params[key] = val
+            self.params = unflatten(self.flat_params)
     
 
 
@@ -279,7 +292,7 @@ if __name__ == "__main__":
     "mat-base":"0.7",
     "rel-width" : {"a": "1.2+-0.1", "b":"0.3:0.6" }, 
     "rel-pos-x" : {"ab": 0.01, "VA": -0.03},
-    "rel-pos-y" : {"n":1.07}
+    "rel-pos-y" : {"n":"3:6"}
     
     } ''')
 

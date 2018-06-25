@@ -7,14 +7,17 @@ import cv2
 import sys
 import random
 import numpy as np
-from paramatch.params import Params
-from textrender.textrenderer import RelPosRenderer
+from paramatch.params import GenerativeParams, ChangableParams
+from shaperender.shape import BGDummyGui, CMNDCircle, BGGuiCMNDSo
+from textrender.textrenderer import TextRenderer
 from textrender.font import TTFFont
 from textrender.relpos_matrix import RelPos4D
 from textgen.items import RegExGen
 from light.colorize3_poisson import Layer
 
-
+def merge(bg, fg, fg_intensity):
+    c_r = ((1-fg)*bg)[:,:] + fg[:,:] * fg_intensity
+    return c_r
 
 def hsv2bgr(col_hsv):
     assert len(col_hsv) == 3
@@ -31,41 +34,31 @@ class CMNDPipeID(object):
         self.height = height
         self.width = width
         self.txt = '123'
-        self.p = Params()        
+        self.p = GenerativeParams()
         
-        ### FONTS
-        self.charset = '0123456789'
-        basefont = '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF'
-        self.charfont = TTFFont(self.charset, 40, basefont)
-        ### RelPos
-        self.mat = RelPos4D(self.charset)
-        self.mat.mat[('a','b')].hor = -0.1
-        self.mat.mat[('1','2')].hor = +0.5
+        self.renderer = TextRenderer('0123456789', {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
+                                                    'base-height':30})
         
         
-        self.renderer = RelPosRenderer(self.charset, self.charfont)
-    
-
-    
-    
-    def buildCommonParams(self):
-        bg_col_hsv = (random.randint(122,220)*180/360, random.randint(1,16)*255/100, random.randint(70,100)*255/100)
-        guilloche_col_hsv = (random.randint(122,190)*180/360, random.randint(10,40)*255/100, random.randint(30,90)*255/100)
-        while guilloche_col_hsv[1] < bg_col_hsv[1] or guilloche_col_hsv[2] > bg_col_hsv[2]:
-            guilloche_col_hsv = (random.randint(122,190)*180/360, random.randint(10,40)*255/100, random.randint(30,90)*255/100)
-#         guilloche_col_hsv = (bg_col_hsv[0], bg_col_hsv[1] + random.randint(0,10), bg_col_hsv[2] + random.randint(-20,-5))
-        text_col_hsv = (bg_col_hsv[0], bg_col_hsv[1]*random.uniform(1.3,2.2), bg_col_hsv[2]/random.uniform(1.5,2.5))
-        sodo_col_hsv = (random.randint(330,350)*180/360, random.randint(25, 47)*255/100, random.randint(45,75)*255/100)
-        self.bg_col = hsv2bgr(bg_col_hsv)
-        self.guilloche_col = hsv2bgr(guilloche_col_hsv)
-        self.text_col = (random.randint(2,69), random.randint(2,69), random.randint(2,69)) #hsv2bgr(text_col_hsv)
-        self.sodo_col = hsv2bgr(sodo_col_hsv) 
-        self.x0 = self.p.new('center_x_id', self.width/2, paramrange=(0, self.width), freeze=True).x
-        self.y0 = self.p.new('center_y_id', self.height/2, paramrange=(0, self.height), freeze=True).x    
-
     def buildId(self):
-        #(self, txt, shape, ybaseline, height, x0, relposmat=None, relposmat2=None):   
-        mask, charmasks, charbbs = self.renderer.render(self.txt, (self.height, self.width), 40, 100, 20, self.mat)
+        params = {'txt':'123',
+               'relpos-y':{},
+               'angle':0.0,
+               'height':30
+               }
+        self.renderer.overWrite(params)
+        font_dict = {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
+                       'detail-font':{'4':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/OFFSFOW.ttf',
+                                     },
+                       'base-height':30,
+                       'detail-height':{'4':80}
+                       }
+        self.renderer.overWriteFont(font_dict)
+        relposx_dict = {'base-relpos':0.3,
+                          'detail-relpos': {'01':0.9,'12':0.9,'67':-0.5}
+                          }
+        self.renderer.overWriteRelPosX(relposx_dict)
+        mask,_,_ = self.renderer.render((0, 50), (100,300), '01234567')
         return Layer(alpha=mask, color=self.sodo_col)
         
     def applyParams(self):
@@ -123,7 +116,7 @@ if __name__ == '__main__':
     txtgen = RegExGen(r'[0-3]\d{8}')
     pipe_id.p.reset(''' {
     "mat-base":"0.7",
-    "rel-width" : {"a": "1.2+-0.1", "b":"0.3-0.6" }, 
+    "rel-width" : {"a": "1.2+-0.1", "b":"0.3:0.6" }, 
     "rel-pos-x" : {"ab": 0.01, "VA": -0.03},
     "rel-pos-y" : {"n":0.07}
     
