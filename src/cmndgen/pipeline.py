@@ -113,13 +113,16 @@ class CMNDPipeID(object):
         ret1 = self.si.heterogeneous0(ret1)
         ret1 = self.si.colorBlob0(ret1)
 
+        
         M = cv2.getRotationMatrix2D((self.width/2,self.height/2),int(gened['rotate']),gened['scale'])
+        mask_chars = [cv2.warpAffine(mask, M, (self.width, self.height)) for mask in mask_char_id]
         ret1 = cv2.warpAffine(ret1, M, (self.width, self.height))
         newy0 = self.padheight/2
         newx0 = self.padwidth/2
+        mask_chars = [mask[newy0:(newy0+self.height-self.padheight), newx0:(newx0+ self.width - self.padwidth)] for mask in mask_chars]
         ret1 = ret1[newy0:(newy0+self.height-self.padheight), newx0:(newx0+ self.width - self.padwidth)]
              
-        return ret1
+        return ret1, mask_chars, self.txt
         
         
 #         # LAYERS
@@ -247,12 +250,13 @@ if __name__ == '__main__':
     
     for i in range(30):
         pipe_id.txt = '272311968' #txtgen.gen()
-        mask = pipe_id.gen()
+        mask, mask_chars, txt = pipe_id.gen()
 #         mask = cv2.resize(mask, None, fx=0.5, fy=0.5)
 #         mask = cv2.resize(mask, None, fx=4.0, fy=4.0)
         hm = gray2heatmap(mask)
         cv2.imshow('mask', mask)
         cv2.imshow('hm', hm)
+        cv2.imshow('mask0', mask_chars[1])
         cv2.waitKey(-1)
     
     
