@@ -66,9 +66,9 @@ class ShootEffect(object):
     def blur(self, mask):
         (h,_) = mask.shape[:2]
         ksz = h//4*2+1
-        bszx= 3*np.random.rand()
-        bszy= 3*np.random.rand()
-        if bszx + bszy > 4.0:
+        bszx= 2*np.random.rand()
+        bszy= 2*np.random.rand()
+        if bszx + bszy > 5.0:
             return mask
         else:
             mask = cv2.GaussianBlur(mask,(ksz,ksz),sigmaX=bszx, sigmaY=bszy)

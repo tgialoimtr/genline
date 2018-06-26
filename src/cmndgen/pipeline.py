@@ -48,11 +48,14 @@ class CMNDPipeID(object):
     '''
 
     def __init__(self, height, width):
-        self.height = height
-        self.width = width
+        self.padheight = int(height*0.2)
+        self.padwidth = int(width*0.2)
+        self.height = height + self.padheight
+        self.width = width + self.padwidth
         self.txt = '123'
         self.p = GenerativeParams()
-        
+        self.renderer2 = TextRenderer('ABCDEFGHIJKLMNOPQRSTUVWXYZ', {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_den/UTM HelveBold.ttf',
+                                                    'base-height':30, 'height':30})        
         self.renderer = TextRenderer('0123456789', {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
                                                     'base-height':30, 'height':30})
         self.guiSo = BGGuiCMNDSo()
@@ -60,30 +63,34 @@ class CMNDPipeID(object):
         self.circle = CMNDCircle()
         self.si = ShootEffect()
         
-    def buildId(self, font_dict, relposx_dict, txt, (x0,y0), shape, angle, height):
+    def renderText(self, renderer, font_dict, relposx_dict, txt, (x0,y0), shape, angle, height):
         params = {
                'height':height
                }
-        self.renderer.overWrite(**params)
-        self.renderer.overWriteFont(font_dict)
-        self.renderer.overWriteRelPosX(relposx_dict)
-        mask,b,c = self.renderer.render((x0, y0), shape, txt)
+        renderer.overWrite(**params)
+        renderer.overWriteFont(font_dict)
+        renderer.overWriteRelPosX(relposx_dict)
+        mask,b,c = renderer.render((x0, y0), shape, txt)
         return mask,b,c
         
     def gen(self):
         gened = self.p.getChangable()
         id_font_dict = gened['id']['font']
         id_relpos_dict = gened['id']['relpos']
-#         cmnd_font_dict = gened['cmnd_font']
-#         cmnd_relpos_dict = gened['cmnd_relpos']
+        cmnd_font_dict = gened['cmnd']['font']
+        cmnd_relpos_dict = gened['cmnd']['relpos']
         
         # build 
-        mask_id, mask_char_id, bb_id = self.buildId(id_font_dict, id_relpos_dict, self.txt, 
+        mask_id, mask_char_id, bb_id = self.renderText(self.renderer, id_font_dict, id_relpos_dict, self.txt, 
                                                 (gened['id']['x0'],gened['id']['y0']), 
                                                 (self.height, self.width),
                                                 0,
                                                 gened['id']['height'])
-#         mask_cmnd,_,_ = self.buildCmnd()
+        mask_cmnd, _, _ = self.renderText(self.renderer2, cmnd_font_dict, cmnd_relpos_dict, 'CHUNG MINH NHAN DAN', 
+                                                (gened['cmnd']['x0'],gened['cmnd']['y0']), 
+                                                (self.height, self.width),
+                                                0,
+                                                gened['cmnd']['height'])
         
         self.guiSo.overWrite(**gened['guiso'])
         mask_guiso = self.guiSo.render((gened['guiso']['x0'],gened['guiso']['y0']), 
@@ -94,17 +101,24 @@ class CMNDPipeID(object):
         mask_circle = self.circle.render((gened['circle']['x0'],gened['circle']['y0']), 
                                        (self.height, self.width))
         
-        fgs = [(mask_guibg, 0.1), (mask_guiso, 0.4), (mask_circle, 0.6)]
+        fgs = [(mask_guibg, gened['strength-bg']), (mask_guiso, gened['guiso']['strength']),
+               (mask_circle, gened['circle']['strength']), (mask_cmnd, gened['cmnd']['strength'])]
         ret0 = (mergeList(None, fgs)*255).astype(int)
         ret0 = self.si.matnet(ret0)
         ret0 = self.si.blur(ret0)      
         mask_id = self.si.matnet(mask_id)
-        mask_id = self.si.blur(mask_id) 
-        mask_id = self.si.sonhoe(mask_id)
-        ret1 = 1.0-mergeList(ret0/255.0, [(mask_id, 0.96)])
+        mask_id = self.si.blur(mask_id)
+        ret1 = 1.0-mergeList(ret0/255.0, [(mask_id, gened['id']['strength'])])
         ret1 = self.si.addnoise0(255*ret1)
         ret1 = self.si.heterogeneous0(ret1)
-        ret1 = self.si.colorBlob0(ret1)        
+        ret1 = self.si.colorBlob0(ret1)
+
+        M = cv2.getRotationMatrix2D((self.width/2,self.height/2),int(gened['rotate']),gened['scale'])
+        ret1 = cv2.warpAffine(ret1, M, (self.width, self.height))
+        newy0 = self.padheight/2
+        newx0 = self.padwidth/2
+        ret1 = ret1[newy0:(newy0+self.height-self.padheight), newx0:(newx0+ self.width - self.padwidth)]
+             
         return ret1
         
         
@@ -173,29 +187,28 @@ if __name__ == '__main__':
             },
             'x0':30,
             'y0':55,
-            'height':70
+            'height':70,
+            'strength':0.95
         },
         'cmnd':
         {
             'font':
             {
-                'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
-                'detail-font':
-                    {'4':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/OFFSFOW.ttf'},
-                'base-height':30,
-                'detail-height':{'4':80}
+                'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_den/UTM HelveBold.ttf',
+                'base-height':30
             },
             'relpos':
             {
                 'base-relpos':0.3,
-                'detail-relpos': {'01':0.9,'12':0.9,'67':-0.5}
             },
             'x0':20,
-            'y0':20,
+            'y0':5,
+            'strength':0.6,
             'height':40
         },             
         'guiso':
         {
+            'strength':0.6,
             'height':35,
             'amp':3,
             'wavelength':90,
@@ -207,6 +220,7 @@ if __name__ == '__main__':
         },
         'circle':
         {
+            'strength':0.6,
             'R1':251,
             'R2':268,
             'a1':2,
@@ -216,8 +230,9 @@ if __name__ == '__main__':
             'x0':60,
             'y0':290
         },
-        'scale':1.3,
-        'rotate':5,
+        'strength-bg':0.2,
+        'scale':'1.0',
+        'rotate':'0',
         'si_blur': {},
         'si_dot': {},
         'si_blob': {}
@@ -233,7 +248,8 @@ if __name__ == '__main__':
     for i in range(30):
         pipe_id.txt = '272311968' #txtgen.gen()
         mask = pipe_id.gen()
-        mask = cv2.resize(mask, None, fx=2.0, fy=2.0)
+#         mask = cv2.resize(mask, None, fx=0.5, fy=0.5)
+#         mask = cv2.resize(mask, None, fx=4.0, fy=4.0)
         hm = gray2heatmap(mask)
         cv2.imshow('mask', mask)
         cv2.imshow('hm', hm)

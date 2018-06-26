@@ -24,7 +24,8 @@ class TTFFont(object):
         
     
     def overWrite(self, ch, newheight=None, newbasefont=None, ratios=(1.0,1.0)):
-        self.charfont[ch].setFont(newbasefont, newheight, ratios)
+        if ch != ' ':
+            self.charfont[ch].setFont(newbasefont, newheight, ratios)
     
     def render(self, ch, (x,y), shape=None):
         return self.charfont[ch].render((x,y), shape)

@@ -85,20 +85,20 @@ class TextRenderer(object):
 
     def overWriteFont(self, font_dict):
         for ch in self.charset:
-            newheight=font_dict['detail-height'][ch] if ch in font_dict['detail-height'] else None
-            newbasefont=font_dict['detail-font'][ch] if ch in font_dict['detail-font'] else None
+            newheight=font_dict['detail-height'][ch] if 'detail-height' in font_dict and ch in font_dict['detail-height'] else None
+            newbasefont=font_dict['detail-font'][ch] if 'detail-font' in font_dict and ch in font_dict['detail-font'] else None
             if newbasefont is not None or newheight is not None:
                 print ch, newheight, newbasefont
                 self.rd.charfont.overWrite(ch, newheight=newheight, newbasefont=newbasefont)
     
     def overWriteRelPosX(self, relposx_dict):
         base = relposx_dict['base-relpos']
-        raw_relpos = relposx_dict['detail-relpos']
         mat = RelPos4D(self.charset, base)
-        for twochar, rpdist in raw_relpos.iteritems():
-            c1 = twochar[0]
-            c2 = twochar[1]
-            mat.mat[(c1,c2)].hor = (1.0 + rpdist) * base
+        if 'detail-relpos' in relposx_dict:
+            for twochar, rpdist in relposx_dict['detail-relpos'].iteritems():
+                c1 = twochar[0]
+                c2 = twochar[1]
+                mat.mat[(c1,c2)].hor = (1.0 + rpdist) * base
         
         self.mat = mat
     
