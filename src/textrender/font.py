@@ -27,13 +27,14 @@ class TTFFont(object):
         if ch != ' ':
             self.charfont[ch].setFont(newbasefont, newheight, ratios)
     
-    def render(self, ch, (x,y), shape=None):
+    def render(self, ch, pos, shape=None):
+        (x,y) = pos
         return self.charfont[ch].render((x,y), shape)
     
     def spaceWidth(self):
-        return self.charfont.values()[0].spaceWidth()
+        return list(self.charfont.values())[0].spaceWidth()
     def normHeight(self):
-        return self.charfont.values()[0].normHeight()
+        return list(self.charfont.values())[0].normHeight()
         
 class ClassAutoBalancedLoader(object):
     ''' 
@@ -97,8 +98,8 @@ class SomeOnRamLoader(object):
             
             for img, label in zip(images, labels):
                 img = np.reshape(img, (28,28)).astype(np.uint8)
-                print summarize(img) # 28 * 28; 0-255; uint8
-                print label  
+#                 print summarize(img) # 28 * 28; 0-255; uint8
+#                 print label  
                 instance = [img, label, '', False]
                 instances.append(instance)
             
@@ -142,7 +143,7 @@ class HandWrittenFont(object):
         for c in self.fontchar:
             pass
                   
-    def render(self, ch, (x,y), shape=None, ratio=None):
+    def render(self, ch, pos, shape=None, ratio=None):
         #distort
         
         #stroke width
@@ -165,5 +166,5 @@ if __name__ == '__main__':
     bound, mask = hwf.render('a', (40,40), (100,100))
     
     cv2.imshow('rd', mask)
-    print bound
+    print(bound)
     cv2.waitKey(-1)

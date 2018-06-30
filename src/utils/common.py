@@ -9,7 +9,6 @@ from pylab import *
 import cv2
 from scipy.ndimage import interpolation
 from skimage.filters import threshold_sauvola, gaussian
-from ocrolib import psegutils,morph,sl
 
 cmnd_path = '/home/loitg/workspace/cmnd/scanned/'
 cmnd_path = '/home/loitg/workspace/receipttest/img/'
@@ -122,47 +121,6 @@ def sauvola(grayimg, w=51, k=0.2, scaledown=None, reverse=False):
         return where(grayimg > mask, uint8(0), uint8(1))
     else:
         return where(grayimg > mask, uint8(1), uint8(0))
-    
-def simplefirstAnalyse(binary):
-    binaryary = morph.r_closing(binary.astype(bool), (1,1))
-    labels,_ = morph.label(binaryary)
-    objects = morph.find_objects(labels) ### <<<==== objects here
-    smalldot = zeros(binaryary.shape, dtype=binary.dtype)
-    scale = int(binary.shape[0]*0.7)
-    for i,o in enumerate(objects):       
-        if (sl.width(o) < scale/2) or (sl.height(o) < scale/2):
-            smalldot[o] = binary[o]
-        if sl.dim0(o) > 3*scale:
-            mask = where(labels[o] != (i+1),uint8(255),uint8(0))
-            binary[o] = cv2.bitwise_and(binary[o],binary[o],mask=mask)
-            continue
-    return objects, smalldot, scale
-
-def firstAnalyse(binary):
-    binaryary = morph.r_closing(binary.astype(bool), (1,1))
-    labels,_ = morph.label(binaryary)
-    objects = morph.find_objects(labels) ### <<<==== objects here
-    bysize = sorted(range(len(objects)), key=lambda k: sl.area(objects[k]))
-#     bysize = sorted(objects,key=sl.area)
-    scalemap = zeros(binaryary.shape)
-    smalldot = zeros(binaryary.shape, dtype=binary.dtype)
-    for i in bysize:
-        o = objects[i]
-        if amax(scalemap[o])>0: 
-#             mask = where(labels[o] != (i+1),uint8(255),uint8(0))
-#             binary[o] = cv2.bitwise_and(binary[o],binary[o],mask=mask)
-            continue
-        scalemap[o] = sl.area(o)**0.5
-    scale = median(scalemap[(scalemap>3)&(scalemap<100)]) ### <<<==== scale here
-
-    for i,o in enumerate(objects):       
-        if (sl.width(o) < scale/2) or (sl.height(o) < scale/2):
-            smalldot[o] = binary[o]
-        if sl.dim0(o) > 3*scale:
-            mask = where(labels[o] != (i+1),uint8(255),uint8(0))
-            binary[o] = cv2.bitwise_and(binary[o],binary[o],mask=mask)
-            continue
-    return objects, smalldot, scale
 
 GST1 = 'o ten:'
 UNI_STR = '194'

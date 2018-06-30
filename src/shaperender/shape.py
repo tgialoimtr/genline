@@ -49,9 +49,9 @@ class BGGuiCMNDSo(object):
             if key in kwargs and kwargs[key] is not None:
                 self.params[key] = kwargs[key]
         
-    def render(self, (x,y), shape):
-        x = int(x)
-        y = int(y)
+    def render(self, pos, shape):
+        x = int(pos[0])
+        y = int(pos[1])
         alpha= np.zeros(shape,'uint8')
         dy = self.params['height']*1.0/5
         x0 = x
@@ -80,10 +80,10 @@ class BGDummyGui(object):
                 self.params[key] = value
                 
     
-    def render(self, (x,y), shape):
+    def render(self, pos, shape):
         alpha= np.zeros(shape,'uint8')
-        amp = random.randint(shape[0]/7, shape[0]/5)
-        wavelength = random.randint(shape[0]/4, shape[0]/2)
+        amp = random.randint(int(shape[0]/7), int(shape[0]/5))
+        wavelength = random.randint(int(shape[0]/4), int(shape[0]/2))
         thick = random.randint(1,2)
         angle= random.uniform(0.0, 160.0)
         n = random.randint(15,30)
@@ -115,9 +115,9 @@ class CMNDCircle(object):
             if key in kwargs and kwargs[key] is not None:
                 self.params[key] = kwargs[key]
                 
-    def render(self, (x,y), shape):
-        x = int(x)
-        y = int(y)
+    def render(self, pos, shape):
+        x = int(pos[0])
+        y = int(pos[1])
         alpha= np.zeros(shape,'uint8')
         R1 = self.params['R1']
         R2 = self.params['R2']

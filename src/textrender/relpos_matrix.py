@@ -15,7 +15,8 @@ class RelPosSimple(object):
     def __init__(self):
         self.mat = RelInfo()
     
-    def at(self, (beforeChar, afterChar)):
+    def at(self, chars):
+        (beforeChar, afterChar) = chars
         return self.mat
 
    
@@ -31,7 +32,8 @@ class RelPos4D(object):
             for c2 in self.charset:
                 self.mat[(c1, c2)] = RelInfo(hor=hor)
         
-    def at(self, (beforeChar, afterChar)):
+    def at(self, chars):
+        (beforeChar, afterChar) = chars
         return self.mat[(beforeChar, afterChar)]
     
     

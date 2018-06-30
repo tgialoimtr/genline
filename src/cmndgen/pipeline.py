@@ -50,8 +50,8 @@ class CMNDPipeID(object):
     def __init__(self, height, width):
         self.padheight = int(height*0.2)
         self.padwidth = int(width*0.2)
-        self.height = height + self.padheight
-        self.width = width + self.padwidth
+        self.height = int(height) + self.padheight
+        self.width = int(width) + self.padwidth
         self.txt = '123'
         self.p = GenerativeParams()
         self.renderer2 = TextRenderer('ABCDEFGHIJKLMNOPQRSTUVWXYZ', {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_den/UTM HelveBold.ttf',
@@ -63,7 +63,8 @@ class CMNDPipeID(object):
         self.circle = CMNDCircle()
         self.si = ShootEffect()
         
-    def renderText(self, renderer, font_dict, relposx_dict, txt, (x0,y0), shape, angle, height):
+    def renderText(self, renderer, font_dict, relposx_dict, txt, pos, shape, angle, height):
+        x0, y0 = pos
         params = {
                'height':height
                }
@@ -117,14 +118,14 @@ class CMNDPipeID(object):
         M = cv2.getRotationMatrix2D((self.width/2,self.height/2),int(gened['rotate']),gened['scale'])
         mask_chars = [cv2.warpAffine(mask, M, (self.width, self.height)) for mask in mask_char_id]
         ret1 = cv2.warpAffine(ret1, M, (self.width, self.height))
-        newy0 = self.padheight/2
-        newx0 = self.padwidth/2
+        newy0 = int(self.padheight/2)
+        newx0 = int(self.padwidth/2)
         mask_chars = [mask[newy0:(newy0+self.height-self.padheight), newx0:(newx0+ self.width - self.padwidth)] for mask in mask_chars]
         ret1 = ret1[newy0:(newy0+self.height-self.padheight), newx0:(newx0+ self.width - self.padwidth)]
              
         return ret1, mask_chars, self.txt
         
-        
+
 #         # LAYERS
 #         lGuiBgSo = self.buildGuillocheBGSo()
 #         lGuiBG = self.buildGuillocheBG()
@@ -191,7 +192,7 @@ if __name__ == '__main__':
             'x0':30,
             'y0':55,
             'height':70,
-            'strength':0.95
+            'strength':'0.9:0.99'
         },
         'cmnd':
         {
@@ -248,16 +249,16 @@ if __name__ == '__main__':
     
     pipe_id.p.reset(params)
     
-    for i in range(30):
-        pipe_id.txt = '272311968' #txtgen.gen()
-        mask, mask_chars, txt = pipe_id.gen()
+    #for i in range(30):
+    pipe_id.txt = txtgen.gen()
+    grayimg, mask_chars, _ = pipe_id.gen()
 #         mask = cv2.resize(mask, None, fx=0.5, fy=0.5)
 #         mask = cv2.resize(mask, None, fx=4.0, fy=4.0)
-        hm = gray2heatmap(mask)
-        cv2.imshow('mask', mask)
-        cv2.imshow('hm', hm)
-        cv2.imshow('mask0', mask_chars[1])
-        cv2.waitKey(-1)
+#        hm = gray2heatmap(mask)
+    cv2.imwrite('/tmp/test/mask.jpg', grayimg)
+#         cv2.imwrite('/tmp/test/hm.jpg', hm)
+    cv2.imwrite('/tmp/test/mask0.jpg', mask_chars[0])
+
     
     
 #     cv2.imshow('mask', mask)

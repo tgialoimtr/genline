@@ -7,7 +7,6 @@ import random
 import numpy as np
 import json
 from flatten_json import flatten, unflatten
-from pip.utils.outdated import SELFCHECK_DATE_FMT
 from six import string_types
 
 
@@ -240,7 +239,7 @@ class GenerativeParams(object):
     
     def getChangable(self):
         ret = {}
-        for key, gener in self.flat_params.iteritems():
+        for key, gener in self.flat_params.items():
             ret[key] = gener.x
         return unflatten(ret)
     
@@ -314,15 +313,15 @@ if __name__ == "__main__":
     } ''')
 
     gp.set('rel-pos-y_n', '-6:-3')
-    print gp.get('rel-pos-y_n')
-    print gp.get('rel-pos-y_n')
-    print gp.get('rel-pos-y_n')
+    print(gp.get('rel-pos-y_n'))
+    print(gp.get('rel-pos-y_n'))
+    print(gp.get('rel-pos-y_n'))
     
     cp.set('rel-pos-y','n', -3.4)
-    print cp.get('rel-pos-y','n')
-    print cp.get('rel-pos-x','VA')
+    print(cp.get('rel-pos-y','n'))
+    print(cp.get('rel-pos-x','VA'))
            
-    print str(cp)
-    print str(gp)
+    print(str(cp))
+    print(str(gp))
     
      

@@ -4,7 +4,7 @@ Created on Jan 17, 2018
 @author: loitg
 '''
 import numpy as np 
-from poisson_reconstruct import blit_images
+from light.poisson_reconstruct import blit_images
 
 
 def sample_weighted(p_dict):
@@ -33,7 +33,7 @@ class Layer(object):
         elif color.ndim==3: #rgb image
             self.color = color.copy().astype('uint8')
         else:
-            print color.shape
+            print (color.shape)
             raise Exception("color datatype not understood")
 
 

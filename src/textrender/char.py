@@ -57,9 +57,9 @@ class PrintedChar(object):
     def normHeight(self):
         return self.baseheight
         
-    def render(self, (x,y), shape):
-        x = int(x)
-        y = int(y)
+    def render(self, pos, shape):
+        x = int(pos[0])
+        y = int(pos[1])
         pgsurf = pygame.Surface((shape[1], shape[0]), pygame.locals.SRCALPHA, 32)
         bound = self.font.render_to(pgsurf, (x,y), self.ch)
         bound.x = x + bound.x

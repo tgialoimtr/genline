@@ -79,7 +79,7 @@ class SepGen(object):
 if __name__ == '__main__':
     g = StringListGen(['a','\s\\k','bpopp'])
     for i in range(20):
-        print '----'+g.gen()+'------'
+        print ('----'+g.gen()+'------')
             
             
         

@@ -6,7 +6,7 @@ sys.path.insert(0, project_dir)
 # from synthgen import *
 import cv2
 import numpy as np
-from Operations import Distort, RotateRange
+from light.Operations import Distort, RotateRange
 from PIL import Image
 
 class ShootEffect(object):
@@ -292,8 +292,6 @@ def init():
 
     cv2.imshow('ll',rs)
     cv2.waitKey(-1)
-    
-    print '------------'
     
     return None     
 ############################################################################    
