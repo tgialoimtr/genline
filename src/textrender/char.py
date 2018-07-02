@@ -62,16 +62,32 @@ class PrintedChar(object):
         y = int(pos[1])
         pgsurf = pygame.Surface((shape[1], shape[0]), pygame.locals.SRCALPHA, 32)
         bound = self.font.render_to(pgsurf, (x,y), self.ch)
-        bound.x = x + bound.x
-        bound.y = y - bound.y
         mask = pygame.surfarray.pixels_alpha(pgsurf)
         mask = mask.swapaxes(0,1)
-#         if self.r_x != 1.0 or self.r_y != 1.0:
-#             mask2 = cv2.resize(mask, None, fx=self.r_x, fy=self.r_y)
-#             bound.width = bound.width * self.r_x
-#             bound.height = bound.height * self.r_y
-#             dx = bound.x * (self.r_x - 1.0)
-#             mask2 = mask2[:,:]
+        if self.r_x != 1.0 or self.r_y != 1.0:
+            mask9 = cv2.resize(mask, None, fx=self.r_x, fy=self.r_y)
+            x9 = int(round(x*self.r_x))
+            y9 = int(round(y*self.r_y))
+            x0 = 0 - x; x1 = mask.shape[1] - x; y0 = 0 - y; y1 = mask.shape[0] - y;
+            x90 = 0 - x9; x91 = mask9.shape[1] - x9; y90 = 0 - y9; y91 = mask9.shape[0] - y9;
+            newx0 = max(x0, x90); newx1 = min(x1,x91);
+            newy0 = max(y0, y90); newy1 = min(y1,y91);
+            x0 = newx0 + x; x1 = newx1 + x; y0 = newy0 + y; y1 = newy1 + y;
+            x90 = newx0 + x9; x91 = newx1 + x9; y90 = newy0 + y9; y91 = newy1 + y9;
+            mask[:,:] = 0
+            mask[y0:y1,x0:x1] = mask9[y90:y91,x90:x91]
+            
+            bound.width = int(round(bound.width * self.r_x))
+            bound.height = int(round(bound.height * self.r_y))
+            bound.x = int(round(bound.x * self.r_x))
+            bound.y = int(round(bound.y * self.r_y))
+        bound.x = x + bound.x
+        bound.y = y - bound.y
         return bound, mask
+
+
+
+
+
 
     

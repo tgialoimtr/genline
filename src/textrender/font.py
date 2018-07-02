@@ -15,12 +15,12 @@ from utils.common import summarize
 
 class TTFFont(object):
 
-    def __init__(self, charset, height, basefont):
+    def __init__(self, charset, height, basefont, ratios=(1.0,1.0)):
         pygame.init()
         self.charfont = {}
         for c in charset:
             self.charfont[c] = PrintedChar(c)
-            self.charfont[c].setFont(basefont, height)
+            self.charfont[c].setFont(basefont, height, ratios)
         
     
     def overWrite(self, ch, newheight=None, newbasefont=None, ratios=(1.0,1.0)):
@@ -157,14 +157,21 @@ class HandWrittenFont(object):
 
 if __name__ == '__main__':
     charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
-#     pf = TTFFont(charset, 40, '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF')
+    pf = TTFFont(charset, 40, '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF')
+    pf.overWrite('j', None, None, (1.0,1.5))
 
-    hwf = HandWrittenFont(SomeOnRamLoader('/media/loitg/New Volume/ocr/bywriteclass/by_class/', "EMNIST_original_byclass"),40)
+#     hwf = HandWrittenFont(SomeOnRamLoader('/media/loitg/New Volume/ocr/bywriteclass/by_class/', "EMNIST_original_byclass"),40)
 #     hwf = HandWrittenFont('/media/loitg/New Volume/ocr/English/Hnd/Img', "Char74k", 40)
     
-#     bound, mask = pf.render('a', (40,40),(100,100))
-    bound, mask = hwf.render('a', (40,40), (100,100))
+    bound, mask = pf.render('j', (40,40),(100,100))
+#     bound, mask = hwf.render('a', (40,40), (100,100))
     
     cv2.imshow('rd', mask)
+    print(bound)
+    
+    
+    pf.overWrite('j', None, None, (1.0,1.0))
+    bound, mask = pf.render('j', (40,40),(100,100))
+    cv2.imshow('rd2', mask)
     print(bound)
     cv2.waitKey(-1)

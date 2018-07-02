@@ -47,11 +47,7 @@ class CMNDPipeID(object):
     classdocs
     '''
 
-    def __init__(self, height, width):
-        self.padheight = int(height*0.2)
-        self.padwidth = int(width*0.2)
-        self.height = int(height) + self.padheight
-        self.width = int(width) + self.padwidth
+    def __init__(self):
         self.txt = '123'
         self.p = GenerativeParams()
         self.renderer2 = TextRenderer('ABCDEFGHIJKLMNOPQRSTUVWXYZ', {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_den/UTM HelveBold.ttf',
@@ -70,7 +66,7 @@ class CMNDPipeID(object):
                }
         renderer.overWrite(**params)
         renderer.overWriteFont(font_dict)
-        renderer.overWriteRelPosX(relposx_dict)
+        renderer.overWriteRelPos(relposx_dict)
         mask,b,c = renderer.render((x0, y0), shape, txt)
         return mask,b,c
         
@@ -80,6 +76,8 @@ class CMNDPipeID(object):
         id_relpos_dict = gened['id']['relpos']
         cmnd_font_dict = gened['cmnd']['font']
         cmnd_relpos_dict = gened['cmnd']['relpos']
+        self.height = int(gened['height'] + 2*gened['pad'])
+        self.width = int(gened['width'] + 2*gened['pad'])
         
         # build 
         mask_id, mask_char_id, bb_id = self.renderText(self.renderer, id_font_dict, id_relpos_dict, self.txt, 
@@ -118,60 +116,21 @@ class CMNDPipeID(object):
         M = cv2.getRotationMatrix2D((self.width/2,self.height/2),int(gened['rotate']),gened['scale'])
         mask_chars = [cv2.warpAffine(mask, M, (self.width, self.height)) for mask in mask_char_id]
         ret1 = cv2.warpAffine(ret1, M, (self.width, self.height))
-        newy0 = int(self.padheight/2)
-        newx0 = int(self.padwidth/2)
-        mask_chars = [mask[newy0:(newy0+self.height-self.padheight), newx0:(newx0+ self.width - self.padwidth)] for mask in mask_chars]
-        ret1 = ret1[newy0:(newy0+self.height-self.padheight), newx0:(newx0+ self.width - self.padwidth)]
+        newy0 = int(gened['cut'])
+        newx0 = int(gened['cut'])
+        mask_chars = [mask[newy0:(newy0+int(gened['height'])), newx0:(newx0+int(gened['width']))] for mask in mask_chars]
+        ret1 = ret1[newy0:(newy0+int(gened['height'])), newx0:(newx0+int(gened['width']))]
              
         return ret1, mask_chars, self.txt
-        
-
-#         # LAYERS
-#         lGuiBgSo = self.buildGuillocheBGSo()
-#         lGuiBG = self.buildGuillocheBG()
-#         lId = self.buildId()
-#         l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
-#         ### EFFECTS
-#         lGuiBG.alpha = random.uniform(0.4,0.9) * lGuiBG.alpha
-#         lId.alpha = self.si.inkeffect(lId.alpha)
-#         lId.alpha = self.si.matnet(lId.alpha)
-#         lId.alpha = self.si.sonhoe(lId.alpha)
-#         lId.alpha = self.si.blur(lId.alpha)
-#         lGuiBgSo.alpha = self.si.matnet(lGuiBgSo.alpha)
-#         lGuiBgSo.alpha = self.si.blur(lGuiBgSo.alpha)
-#         ### MERGES
-#         layers = [lId, lGuiBgSo, lGuiBG, l_bg]
-#         blends = ['normal'] * len(layers)
-#         idline = self.colorize.merge_down(layers, blends).color
-#         idline = self.si.addnoise(idline)
-#         idline = self.si.heterogeneous(idline)
-#         idline = self.si.colorBlob(idline)
-#         return idline, txt
-    
-# if __name__ == '__main__':
-#     pipe_id = CMNDPipeID()
-#     # Imagine user input -- USING JSON STRING
-#     pipe_id.p.reset('')
-#     pipe_id.p.reset('', key = 'font') # only effect partial params
-#     
-#     # Imagine user input -- USING PARAM ASSIGNMENT
-#     pipe_id.txt = '024540261'
-#     pipe_id.p['height'] = 40
-#     pipe_id.p['mat-base'] = 20
-#     pipe_id.p['mat-a-b'] = 1.3
-#     
-#     # 
-#     pipe_id.gen()
-#     
-#     line_param_jsonStr = pipe_id.p.represent() # return single value
-#     line_param_csv = flatten(line_param_jsonStr)
-#     
-#     line_genparam = ''
-#     line_genparam = makeDistributor([line_param_jsonStr1, line_param_jsonStr2, ...])
     
 if __name__ == '__main__':
-    pipe_id = CMNDPipeID(65, 450)
+    pipe_id = CMNDPipeID()
     txtgen = RegExGen(r'[0-3]\d{8}')
+    a=-0.4; b=0.4; c={}
+    for i in range(10):
+        if i==1: continue
+        c['1'+str(i)] = b
+        c[str(i)+'1'] = a
     
     params = {
         'id':
@@ -181,61 +140,70 @@ if __name__ == '__main__':
                 'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
                 'detail-font':
                     {'4':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/OFFSFOW.ttf'},
-                'base-height':70,
-                'detail-height':{'4':80}
+                'base-height':33,
+                'detail-height':{'4':33},
+                'base-ratio':{'x':1.5,'y':1.0},
+#                 'detail-ratio':{}
             },
             'relpos':
             {
-                'base-relpos':0.3,
-                'detail-relpos': {'01':0.9,'12':0.9,'67':-0.5}
-            },
-            'x0':30,
-            'y0':55,
-            'height':70,
-            'strength':'0.9:0.99'
+                'base-relpos-x':0.3,
+                'detail-relpos-x': c,
+                'relpos-y': {'4':0.3}
+            },          
+            'x0':57,
+            'y0':31,
+            'height':33,
+            'strength':0.95
         },
         'cmnd':
         {
             'font':
             {
                 'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_den/UTM HelveBold.ttf',
-                'base-height':30
+                'base-height':30,
+                'base-ratio':{'x':1.5,'y':1.0}
             },
             'relpos':
             {
-                'base-relpos':0.3,
+                'base-relpos-x':0.3,
+                'relpos-y':{}
             },
-            'x0':20,
-            'y0':5,
+            'x0':47,
+            'y0':2,
             'strength':0.6,
-            'height':40
+            'height':30
         },             
         'guiso':
         {
             'strength':0.6,
-            'height':35,
-            'amp':3,
-            'wavelength':90,
-            'length':500,
+            'height':20,
+            'amp':1,
+            'wavelength':40,
+            'length':220,
             'angle':0.0,
             'thick':1,
-            'x0':200,
-            'y0':30            
+            'x0':144,
+            'y0':18            
         },
         'circle':
         {
             'strength':0.6,
-            'R1':251,
-            'R2':268,
+            'R1':87,
+            'R2':97,
             'a1':2,
             'a2':3,
-            'n':120, # number on circles
+            'n':90, # number on circles
             'thick':1,
-            'x0':60,
-            'y0':290
+            'x0':76,
+            'y0':111
         },
+        'height':32,
+        'width':'280:300',
+        'pad':20,
+        'cut':'5:10',
         'strength-bg':0.2,
-        'scale':'1.0',
+        'scale':'1.1',
         'rotate':'0',
         'si_blur': {},
         'si_dot': {},
@@ -249,16 +217,16 @@ if __name__ == '__main__':
     
     pipe_id.p.reset(params)
     
-    #for i in range(30):
-    pipe_id.txt = txtgen.gen()
-    grayimg, mask_chars, _ = pipe_id.gen()
+    for i in range(30):
+        pipe_id.txt = '272314968' #txtgen.gen()
+        mask, mask_chars, txt = pipe_id.gen()
 #         mask = cv2.resize(mask, None, fx=0.5, fy=0.5)
 #         mask = cv2.resize(mask, None, fx=4.0, fy=4.0)
-#        hm = gray2heatmap(mask)
-    cv2.imwrite('/tmp/test/mask.jpg', grayimg)
-#         cv2.imwrite('/tmp/test/hm.jpg', hm)
-    cv2.imwrite('/tmp/test/mask0.jpg', mask_chars[0])
-
+        hm = gray2heatmap(mask)
+        cv2.imshow('mask', mask)
+#         cv2.imshow('hm', hm)
+#         cv2.imshow('mask0', mask_chars[1])
+        cv2.waitKey(-1)
     
     
 #     cv2.imshow('mask', mask)

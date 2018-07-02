@@ -26,7 +26,7 @@ class RelPosRenderer(object):
         charmasks = []
         charbbs = []
         for c in txt:
-            self.charfont.overWrite(c, height, None)
+            self.charfont.overWrite(c, height, None, None)
 #             self.charfont[c].setFont(None, height)
             if c == ' ':
                 x0 += self.charfont.spaceWidth()
@@ -34,14 +34,12 @@ class RelPosRenderer(object):
             if beforeChar is not None:
                 temp = relposmat.at((beforeChar, c))
                 spacing_hor = temp.hor
-                spacing_ver = temp.ver
             else:
                 spacing_hor = 0.0
-                spacing_ver = 0.0                
+            spacing_ver = relposmat.at((c, c)).ver              
             normHeight = self.charfont.normHeight()
             x0 += spacing_hor*normHeight
-            y0 += spacing_ver*normHeight
-            charbb, charmask = self.charfont.render(c, (x0, y0), surface.shape)
+            charbb, charmask = self.charfont.render(c, (x0, y0 - spacing_ver*normHeight), surface.shape)
             surface = cv2.bitwise_or(surface, charmask)
             charmasks.append(charmask)
             x0 += charbb.width
@@ -78,27 +76,31 @@ class RelPosRenderer(object):
         
 class TextRenderer(object):
     def __init__(self, charset, params):
-        self.charset = charset        
+        self.charset = charset
         pf = TTFFont(charset, params['base-height'], params['base-font'])
         self.rd = RelPosRenderer(charset, pf)
         self.params = params
 
     def overWriteFont(self, font_dict):
         for ch in self.charset:
-            newheight=font_dict['detail-height'][ch] if 'detail-height' in font_dict and ch in font_dict['detail-height'] else None
-            newbasefont=font_dict['detail-font'][ch] if 'detail-font' in font_dict and ch in font_dict['detail-font'] else None
-            if newbasefont is not None or newheight is not None:
-                self.rd.charfont.overWrite(ch, newheight=newheight, newbasefont=newbasefont)
+            newheight=font_dict['detail-height'][ch] if 'detail-height' in font_dict and ch in font_dict['detail-height'] else font_dict['base-height']
+            newbasefont=font_dict['detail-font'][ch] if 'detail-font' in font_dict and ch in font_dict['detail-font'] else font_dict['base-font']
+            newratios=font_dict['detail-ratio'][ch] if 'detail-ratio' in font_dict and ch in font_dict['detail-ratio'] else font_dict['base-ratio']
+            newratios = (newratios['x'], newratios['y'])
+            self.rd.charfont.overWrite(ch, newheight=newheight, newbasefont=newbasefont, ratios=newratios)
     
-    def overWriteRelPosX(self, relposx_dict):
-        base = relposx_dict['base-relpos']
+    def overWriteRelPos(self, relpos_dict):
+        base = relpos_dict['base-relpos-x']
         mat = RelPos4D(self.charset, base)
-        if 'detail-relpos' in relposx_dict:
-            for twochar, rpdist in relposx_dict['detail-relpos'].items():
+        if 'detail-relpos-x' in relpos_dict:
+            for twochar, rpdist in relpos_dict['detail-relpos-x'].items():
                 c1 = twochar[0]
                 c2 = twochar[1]
                 mat.mat[(c1,c2)].hor = (1.0 + rpdist) * base
-        
+        if 'relpos-y' in relpos_dict:
+            for ch, rpheight in relpos_dict['relpos-y'].items():
+                mat.mat[(ch,ch)].ver = rpheight
+                
         self.mat = mat
     
     def overWrite(self, **kwargs):
@@ -127,13 +129,18 @@ if __name__ == '__main__':
                    'detail-font':{'4':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/OFFSFOW.ttf',
                                  },
                    'base-height':30,
-                   'detail-height':{'4':80}
+                   'detail-height':{'4':80},
+                    'base-ratio':{'x':2.5,'y':1.0},
+                    'detail-ratio':{
+                                        '0':{'x':1.0,'y':1.2}
+                                    }
                    }
     renderer.overWriteFont(font_dict)
-    relposx_dict = {'base-relpos':0.3,
-                      'detail-relpos': {'01':0.9,'12':0.9,'67':-0.5}
+    relpos_dict = {'base-relpos-x':0.3,
+                      'detail-relpos-x': {'01':0.9,'12':0.9,'67':-0.5},
+                      'relpos-y': {'1':0.0, '2':0.0}
                       }
-    renderer.overWriteRelPosX(relposx_dict)
+    renderer.overWriteRelPos(relpos_dict)
     mask,_,_ = renderer.render((0, 50), (100,300), '01234567')
     cv2.imshow('hh', mask)
     cv2.waitKey(-1)
