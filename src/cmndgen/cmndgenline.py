@@ -6,24 +6,28 @@ Created on Mar 17, 2018
 '''
 import numpy as np
 import pandas as pd
-import cv2
-from textrender.buildtextmask import RenderText, Fonts
+import cv2, rstr
+from TextRender.buildtextmask import RenderText, Fonts
 from utils.params import cmndconfig
-from light.shooteffect import ShootEffect
-from light.colorize3_poisson import Layer, Colorize
-from textrender.buildtextmask import rotate_bound
+from LightAndShoot.shooteffect import ShootEffect
+from LightAndShoot.colorize3_poisson import Layer, Colorize
+from TextRender.buildtextmask import rotate_bound
 import math, random
-from textgen.items import RegExGen
-from textgen.detailgen import DateGen
-from paramatch.collections import Params
-from textgen.combiner import LambdaGen, ListGenWithProb, ComplexGen, PairGen
-import unicodedata
+from genline.items import RegExGen
+from genline.detailgen import DateGen
+from ParametersMatching.collections import Params
+from genline.combiner import LambdaGen, ListGenWithProb, ComplexGen, PairGen
 import re
+import unicodedata
+from PyQt4.Qt import QHBoxLayout
+
 
 def no_accent_vietnamese(s):
+#     s = s.decode('utf-8')
     s = re.sub(u'Đ', 'D', s)
     s = re.sub(u'đ', 'd', s)
     return unicodedata.normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
+
 
 def createTextMask(gener, render, si):
     txt = gener.gen()
@@ -47,7 +51,23 @@ def bgr2hsv(col_hsv):
     assert len(col_hsv) == 3
     col = cv2.cvtColor(np.array(col_hsv, 'uint8').reshape((1,1,3)), cv2.COLOR_BGR2HSV)
     return col[0,0]
-    
+
+def quan(qh):
+    rs = qh
+    space = u' ' if np.random.rand() < 0.5 else u''
+    if np.random.rand() < 0.7:
+        rs = rs.replace(u'Quận ', u'Q.'+space) if np.random.rand() < 0.5  else rs.replace(u'Quận ', u'')
+        rs = rs.replace(u'Huyện ', u'H.'+space) if np.random.rand() < 0.5  else rs.replace(u'Huyện ', u'')
+        rs = rs.replace(u'Thi xã ', u'TX.'+space) if np.random.rand() < 0.5  else rs.replace(u'Thi xã ', u'')
+        rs = rs.replace(u'Thành phố ', u'TP.'+space) if np.random.rand() < 0.5  else rs.replace(u'Thành phố ', u'')
+    return rs
+def tinh(tt):
+    rs = tt
+    space = u' ' if np.random.rand() < 0.5 else u''
+    if np.random.rand() < 0.7:
+        rs = rs.replace(u'Thành phố ', u'TP.'+space) if np.random.rand() < 0.5  else rs.replace(u'Thành phố ', u'')
+        rs = rs.replace(u'Tỉnh'+space, u'')
+    return rs    
     
 class Stack:
     
@@ -90,13 +110,17 @@ class Stack:
         x0 = x0 + srcMask.shape[1]/2
         y0 = y0 + srcMask.shape[0]/2
         adapted_mask = np.zeros((self.height + 2*srcMask.shape[0], self.width + 2*srcMask.shape[1]), 'uint8')
+        if x0 > self.width or x0 < srcMask.shape[1]:
+            self.overlap = True
+        else:
+            self.overlap = False
         adapted_mask[y0:(y0 + srcMask.shape[0]), x0:(x0+srcMask.shape[1])] = srcMask        
         adapted_mask = adapted_mask[srcMask.shape[0]:-srcMask.shape[0], srcMask.shape[1]:-srcMask.shape[1]]
         return adapted_mask
 
     def createNameGen(self):
         if self.fullnames is None:
-            self.data = pd.read_csv('/tmp/temp.csv', encoding='utf-8')
+            self.data = pd.read_csv('/home/loitg/workspace/genreceipt/resource/temp.csv', encoding='utf-8')
             self.fullnames = self.data['ho va ten'].values
         def f():
             temp = np.random.choice(self.fullnames, 2)
@@ -109,21 +133,25 @@ class Stack:
         return self.namegen
 
     def createNguyenQuan(self):
-        if self.fullnames is None:
-            self.data = pd.read_csv('/tmp/temp.csv', encoding='utf-8')
-            self.fullnames = self.data['ho va ten'].values
-        self.prefixCity = ListGenWithProb(['TP\.[ ]?', 'TT(\.| |\. )', u'Xã ', u'Huyện '],
-                                      [0.4,         0.3,         0.2,   0.11])
-        def f():
-            temp = np.random.choice(self.fullnames, 1)
-            fakecity = temp[0].strip().split(' ')[-2:]
-            fakecity = ' '.join([x.capitalize() for x in fakecity])
-            return fakecity
-        self.nguyenquan1 = ComplexGen([self.prefixCity, LambdaGen(f)],
-                                      [0.5            , 1.0         ])
+        self.tinhtp = pd.read_csv('/home/loitg/workspace/genreceipt/resource/tinhtp.csv', encoding='utf-8')
+        sep = RegExGen('[ ]?,[ ]?')
+        def f1():
+            row = self.tinhtp.sample(1)
+            if np.random.rand() < 0.5:
+                a = quan(row['quanhuyen'].iloc[0])
+                return a
+            else:
+                b = tinh(row['tinhtp'].iloc[0])
+                return b
+        def f2():
+            row = self.tinhtp.sample(1)
+            a = quan(row['quanhuyen'].iloc[0])
+            b = tinh(row['tinhtp'].iloc[0])
+            return a + sep.gen() + b
         
-        nguyenquan2 = LambdaGen(f)
-        self.nguyenquan2= PairGen(self.nguyenquan1, nguyenquan2, p_pair=1.0, p_key=0.0, p_val=0.0, sepchar=',', allowBlank=False, allowFar=False)
+        self.nguyenquan1 = LambdaGen(f1)
+        self.nguyenquan2 = LambdaGen(f2)
+        
         return self.nguyenquan1, self.nguyenquan2
     
     def createThuongTru1(self):
@@ -148,7 +176,105 @@ class Stack:
             cv2.polylines(alpha, [pts], isClosed=False, color=255, thickness=thick)
         
         return Layer(alpha=alpha, color=self.guilloche_col)            
-    
+
+
+    def genKeyValuePair(self):
+        
+        p_line = np.random.rand()
+        p_font = np.random.rand()
+        afont = None
+        var = 0
+        numspot = 0
+        if p_font < 0.6: # typewriter -- travelling
+            afont = self.createParametricFont('travel')
+            var = np.random.randint(0,6)
+            numspot = np.random.randint(20,30)
+        else: # chu in -- para or parab
+            afont = self.createParametricFont('pala.ttf')
+        
+        if p_line < 0.333: # Name
+            keytxt = u' tên:' + u'.'*100
+            valuetxt = self.namegen.gen()
+#             valuetxt = u'TRƯƠNG GIA LỢI'
+            self.width = random.randint(550,648)
+        elif p_line < 0.666: # Nguyenquan 1
+            keytxt = u'tuán:' + u'.'*100
+            valuetxt = self.nguyenquan1.gen()
+            self.width = random.randint(459, 548)
+        else: # Nguyen quan 2
+            keytxt = u'tttt:' + u'.'*100
+            valuetxt = self.nguyenquan2.gen()
+            self.width = random.randint(720, 764)
+        
+        if np.random.rand() < 0.02:
+            valuetxt = u' '
+        self.buildCommonParams()
+        key_x0 = int( self.p.new('key_x0', self.width/2, paramrange=(0,self.width)).x )
+        key_y0 = int( self.p.new('key_y0', self.height/2, paramrange=(0,self.height)).x)
+        x0 = int( self.p.new('value_x0', self.width/2, paramrange=(0,self.width)).x )
+        y0 = int( self.p.new('value_y0', self.height/2, paramrange=(0,self.height)).x)        
+        keyfont = self.createParametricFont('arial')
+        key_a = self.p.new('key_angle', 0, paramrange=(-5,5)).x
+        value_a = self.p.new('value_angle', 0, paramrange=(-5,5)).x
+        key_height = int( self.p.new('key_height', 0.5, paramrange=(0.3,0.8)).x * self.height )
+        value_height = int( self.p.new('value_height', 0.5, paramrange=(0.3,0.8)).x * self.height )
+        
+        mask, txt = self.renderer.toMask2(keyfont, txt=keytxt)
+        adapted_mask = self.putMask(mask, (key_height, key_x0, key_y0, key_a)) 
+        lnamekey = Layer(alpha= adapted_mask, color=self.text_col)
+
+        mask, txt = self.renderer.toMask2(afont, txt=valuetxt, var=var)
+        adapted_mask = self.putMask(mask, (value_height, x0, y0, value_a))
+        if self.overlap:
+            return None, None
+        lnameval = Layer(alpha= adapted_mask, color=self.text_col)       
+
+        above = rstr.rstr('ABC0123456789abcdef ', len(valuetxt))
+        below = rstr.rstr('ABC0123456789abcdef ', len(valuetxt))
+        mask, txtabove = self.renderer.toMask2(afont, txt=above)
+        print mask.shape
+        adapted_mask = self.putMask(mask, (self.height/2, random.randint(0, self.width), -self.height/8, value_a))
+        labove = Layer(alpha= adapted_mask, color=self.text_col) 
+        labove.alpha = random.uniform(0.4,0.95) * labove.alpha
+        mask, txtbelow = self.renderer.toMask2(afont, txt=below)
+        adapted_mask = self.putMask(mask, (self.height/2, random.randint(0, self.width), self.height*9/8, value_a))
+        lbelow = Layer(alpha= adapted_mask, color=self.text_col)
+        lbelow.alpha = random.uniform(0.4,0.95) * lbelow.alpha      
+        
+        lGuiBG = self.buildGuillocheBG()
+        l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
+        ### EFFECTS
+        lGuiBG.alpha = random.uniform(0.4,0.7) * lGuiBG.alpha
+        lnamekey.alpha = random.uniform(0.4,0.95) * lnamekey.alpha
+        lnameval.alpha = self.si.inkeffect(lnameval.alpha, numspot=numspot)
+        lnameval.alpha = self.si.matnet(lnameval.alpha)
+        if numspot > 0:
+            lnameval.alpha = self.si.sonhoe(lnameval.alpha)
+#         lnameval.alpha = self.si.blur(lnameval.alpha)
+        ### MERGES
+        layers = [lnameval, lnamekey, labove, lbelow, lGuiBG, l_bg]
+        blends = ['normal'] * len(layers)
+        nameline = self.colorize.merge_down(layers, blends).color
+        nameline = self.si.addnoise(nameline)
+        nameline = self.si.heterogeneous(nameline)
+        nameline = self.si.distort(nameline)
+#         nameline = self.si.colorBlob(nameline)
+        return nameline, no_accent_vietnamese(txt)     
+        
+    def createParametricFont(self, fontname):
+        try:
+            afont = self.keyfonts.genByName(fontname)
+        except Exception:
+            afont = self.valuefonts.genByName(fontname)
+        temp = self.p.new(fontname + '_s2h', 0.1).x
+        afont.s2h = (temp,temp)
+        temp = self.p.new(fontname + '_w2h', 1.0).x
+        afont.w2h = (temp,temp)
+        return afont       
+
+
+
+   
     def buildNameKey(self, height, angel):
         x0 = int( self.p.new('namekey_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
         y0 = int( self.p.new('namekey_y0', self.height/2, paramrange=(0,self.height), freeze=True).x)
@@ -161,6 +287,22 @@ class Stack:
         mask, txt = self.renderer.toMask2(afont, txt=txt)
         adapted_mask = self.putMask(mask, (height, x0, y0, angel))
         return Layer(alpha= adapted_mask, color=self.text_col)
+    def buildName(self, txt, height, angel):
+        x0 = int( self.p.new('nameval_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
+        y0 = int( self.p.new('nameval_y0', self.height/2, paramrange=(0,self.height), freeze=True).x)
+        afont = self.valuefonts.genByName('traveling') #Kingthings,Olivetti, traveling, pala.ttf, palab.ttf
+        temp = self.p.new('nametype_s2h', 1.0, freeze=True).x
+        afont.s2h = (temp,temp)
+        temp = self.p.new('nametype_w2h', 1.0, freeze=True).x
+        afont.w2h = (temp,temp)
+        mask, txt = self.renderer.toMask2(afont, txt=txt)
+        #move mask
+        adapted_mask = self.putMask(mask, (height, x0, y0, angel))
+        return Layer(alpha= adapted_mask, color=self.text_col)
+    
+    
+    
+    
     
     def buildOtherLines(self, angle):
         mask, txt = self.renderer.toMask2(self.keyfonts.genByName('arial'), txt='CHUNG MINH NHAN DAN')
@@ -170,18 +312,7 @@ class Stack:
         
         return Layer(alpha= adapted_mask, color=self.sodo_col)
     
-    def buildName(self, txt, height, angel):
-        x0 = int( self.p.new('nameval_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
-        y0 = int( self.p.new('nameval_y0', self.height/2, paramrange=(0,self.height), freeze=True).x)
-        afont = self.valuefonts.genByName('Olivetti') #Kingthings,Olivetti, pala.ttf, palab.ttf
-        temp = self.p.new('nametype_s2h', 1.0, freeze=True).x
-        afont.s2h = (temp,temp)
-        temp = self.p.new('nametype_w2h', 1.0, freeze=True).x
-        afont.w2h = (temp,temp)
-        mask, txt = self.renderer.toMask2(afont, txt=txt)
-        #move mask
-        adapted_mask = self.putMask(mask, (height, x0, y0, angel))
-        return Layer(alpha= adapted_mask, color=self.text_col)
+
     
     def buildDOBKey(self, height, angel):
         x0 = int( self.p.new('dobkey_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
@@ -296,7 +427,7 @@ class Stack:
         namekeyheight = int( self.p.new('namekey_height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
         nameangle = self.p.new('angle', 0, paramrange=(-5,5), freeze=True).x
         ### LAYERS
-        txt = no_accent_vietnamese(self.namegen.gen())
+        txt = self.namegen.gen()
         lnamekey = self.buildNameKey(namekeyheight, nameangle)
         lnameval = self.buildName(txt, nameheight, nameangle)
         lGuiBG = self.buildGuillocheBG()
@@ -326,7 +457,7 @@ class Stack:
         ### LAYERS
         lGuiBgSo = self.buildGuillocheBGSo(idheight, idangle)
         txt = self.idnumbergen.gen()
-        lId = self.buildID(txt, int(idheight*raio_id_gui), idangle)
+        lId = self.buildID(txt, int(idheight*raio_id_gui), idangle, 1.1)
         lOtherLine = self.buildOtherLines(idangle)
         lGuiBG = self.buildGuillocheBG()
         l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
@@ -350,10 +481,10 @@ class Stack:
                 
 
     def buildCommonParams(self):
-        bg_col_hsv = (random.randint(122,220)*180/360, random.randint(1,16)*255/100, random.randint(60,95)*255/100)
-        guilloche_col_hsv = (random.randint(122,190)*180/360, random.randint(10,40)*255/100, random.randint(50,90)*255/100)
+        bg_col_hsv = (random.randint(122,220)*180/360, random.randint(1,16)*255/100, random.randint(70,100)*255/100)
+        guilloche_col_hsv = (random.randint(122,190)*180/360, random.randint(10,40)*255/100, random.randint(30,90)*255/100)
         while guilloche_col_hsv[1] < bg_col_hsv[1] or guilloche_col_hsv[2] > bg_col_hsv[2]:
-            guilloche_col_hsv = (random.randint(122,190)*180/360, random.randint(10,40)*255/100, random.randint(50,90)*255/100)
+            guilloche_col_hsv = (random.randint(122,190)*180/360, random.randint(10,40)*255/100, random.randint(30,90)*255/100)
 #         guilloche_col_hsv = (bg_col_hsv[0], bg_col_hsv[1] + random.randint(0,10), bg_col_hsv[2] + random.randint(-20,-5))
         text_col_hsv = (bg_col_hsv[0], bg_col_hsv[1]*random.uniform(1.3,2.2), bg_col_hsv[2]/random.uniform(1.5,2.5))
         sodo_col_hsv = (random.randint(330,350)*180/360, random.randint(25, 47)*255/100, random.randint(45,75)*255/100)
@@ -373,7 +504,7 @@ class Stack:
         ### LAYERS
         lGuiBgSo = self.buildGuillocheBGSo(idheight, idangle)
         txt = self.idnumbergen.gen()
-        lId = self.buildID(txt, int(idheight*raio_id_gui), idangle)
+        lId = self.buildID(txt, int(idheight*raio_id_gui), idangle, 0.0)
         lOtherLine = self.buildOtherLines(idangle)
         lGuiBG = self.buildGuillocheBG()
         l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
@@ -396,10 +527,17 @@ class Stack:
         return idline, txt
     
 if __name__ == '__main__':
-    c9gen = Stack(550,80, Params())
-    c9gen.createNameGen() 
-    for i in range(200):    
-        img, txt = c9gen.genDOB()
+    c9gen = Stack(608, 80, Params())
+    c9gen.createNameGen()
+    c9gen.createNguyenQuan()
+    for i in range(200): 
+        txt = c9gen.nguyenquan1.gen()
+        print '---' + txt + '---'
+        txt = c9gen.nguyenquan2.gen()
+        print '+++' + txt + '+++'
+        continue
+        img, txt = c9gen.genKeyValuePair()
+        if img is None: continue
         print '---' + txt + '---'
         cv2.imshow('hihi', img)
         cv2.waitKey(-1)
