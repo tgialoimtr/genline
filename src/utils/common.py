@@ -9,6 +9,8 @@ from pylab import *
 import cv2
 from scipy.ndimage import interpolation
 from skimage.filters import threshold_sauvola, gaussian
+import re
+import unicodedata
 
 cmnd_path = '/home/loitg/workspace/cmnd/scanned/'
 cmnd_path = '/home/loitg/workspace/receipttest/img/'
@@ -42,6 +44,12 @@ args.model = '/home/loitg/workspace/receipttest/model/receipt-model-460-700-0059
 args.connect = 4
 args.noise = 8
 args.mode = 'cu'
+
+def no_accent_vietnamese(s):
+#     s = s.decode('utf-8')
+    s = re.sub(u'Đ', 'D', s)
+    s = re.sub(u'đ', 'd', s)
+    return unicodedata.normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
 
 def summarize(a):
     b = a.ravel()
