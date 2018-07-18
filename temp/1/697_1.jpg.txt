@@ -1,0 +1,73 @@
+024568697
+{
+        'id':
+        {
+            'font':
+            {
+                'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
+                'detail-font':
+                    {'4':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/OFFSFOW.ttf'},
+                'base-height':33,
+                'detail-height':{'4':33},
+                'base-ratio':{'x':1.5,'y':1.0}
+            },
+            'relpos':
+            {
+                'base-relpos-x':0.3,
+                'detail-relpos-x': {'12':0.4,'21':-0.4},
+                'relpos-y': {'4':0.3}
+            },          
+            'x0':57,
+            'y0':31,
+            'height':33,
+            'strength':0.95
+        },
+        'cmnd':
+        {
+            'font':
+            {
+                'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_den/UTM HelveBold.ttf',
+                'base-height':30,
+                'base-ratio':{'x':1.5,'y':1.0}
+            },
+            'relpos':
+            {
+                'base-relpos-x':0.3
+            },
+            'x0':47,
+            'y0':2,
+            'strength':0.6,
+            'height':30
+        },             
+        'guiso':
+        {
+            'strength':0.6,
+            'height':20,
+            'amp':1,
+            'wavelength':40,
+            'length':220,
+            'angle':0.0,
+            'thick':1,
+            'x0':144,
+            'y0':18            
+        },
+        'circle':
+        {
+            'strength':0.6,
+            'R1':87,
+            'R2':97,
+            'a1':2,
+            'a2':3,
+            'n':90,
+            'thick':1,
+            'x0':76,
+            'y0':111
+        },
+        'height':70,
+        'width':'340',
+        'pad':20,
+        'cut':'5:10',
+        'strength-bg':0.2,
+        'scale':'1.1',
+        'rotate':'0'
+}

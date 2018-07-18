@@ -45,6 +45,12 @@ args.connect = 4
 args.noise = 8
 args.mode = 'cu'
 
+def gray2heatmap(img):
+    cmap = plt.get_cmap('jet')
+    rgba_img = cmap(img)
+    rgb_img = np.delete(rgba_img, 3, 2)
+    return rgb_img
+
 def no_accent_vietnamese(s):
 #     s = s.decode('utf-8')
     s = re.sub(u'Đ', 'D', s)

@@ -240,7 +240,9 @@ class GenerativeParams(object):
     def getChangable(self):
         ret = {}
         for key, gener in self.flat_params.items():
-            ret[key] = gener.x
+            temp = gener.x
+            if isinstance(temp, unicode): temp = temp.encode('ascii','ignore')
+            ret[key] = temp
         return unflatten(ret)
     
     def set(self, *args):
