@@ -3,7 +3,7 @@ Created on Jan 17, 2018
 
 @author: loitg
 '''
-from items import Gen, StringGen, SepGen
+from textgen.items import Gen, StringGen, SepGen
 import numpy as np
 from random import shuffle
 from textgen.items import RegExGen
@@ -138,11 +138,11 @@ class LambdaGen(Gen):
 if __name__ == '__main__':
     g1 = RegExGen(r'\d')
     g2 = RegExGen(r'\D')
-    print isinstance(g1, Gen)
+    print (isinstance(g1, Gen))
     
     c = PairGen(g1,g2,1.0,0.1,0.1,':',False)
     for i in range(20):
-        print '----'+c.gen()+'------'
+        print ('----'+c.gen()+'------')
         
         
         
