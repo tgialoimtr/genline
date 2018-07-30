@@ -86,7 +86,14 @@ class PrintedChar(object):
         return bound, mask
 
 
-
+if __name__ == '__main__':
+    import pygame
+    pygame.init()
+    charfont = PrintedChar('a')
+    charfont.setFont('/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF', 40)
+    _, mask = charfont.render((50,50),(100,100))
+    cv2.imshow('kk', mask)
+    cv2.waitKey(-1)
 
 
 

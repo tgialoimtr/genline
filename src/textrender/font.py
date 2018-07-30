@@ -18,6 +18,7 @@ class TTFFont(object):
     def __init__(self, charset, height, basefont, ratios=(1.0,1.0)):
         pygame.init()
         self.charfont = {}
+        self.charset = charset
         for c in charset:
             self.charfont[c] = PrintedChar(c)
             self.charfont[c].setFont(basefont, height, ratios)
@@ -44,7 +45,7 @@ class ClassAutoBalancedLoader(object):
         pass
     def loadNextBatch(self, maxinstances = None):
         pass
-    
+
 
 class SomeOnRamLoader(object):
     '''

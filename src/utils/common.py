@@ -11,6 +11,8 @@ from scipy.ndimage import interpolation
 from skimage.filters import threshold_sauvola, gaussian
 import re
 import unicodedata
+import src
+from skimage.transform.tests.test_geometric import SRC
 
 cmnd_path = '/home/loitg/workspace/cmnd/scanned/'
 cmnd_path = '/home/loitg/workspace/receipttest/img/'
@@ -45,6 +47,60 @@ args.connect = 4
 args.noise = 8
 args.mode = 'cu'
 
+def rotate_bound(image, angle):
+    # grab the dimensions of the image and then determine the
+    # center
+    (h, w) = image.shape[:2]
+    (cX, cY) = (w // 2, h // 2)
+ 
+    # grab the rotation matrix (applying the negative of the
+    # angle to rotate clockwise), then grab the sine and cosine
+    # (i.e., the rotation components of the matrix)
+    M = cv2.getRotationMatrix2D((cX, cY), angle, 1.0)
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
+ 
+    # compute the new bounding dimensions of the image
+    nW = int((h * sin) + (w * cos))
+    nH = int((h * cos) + (w * sin))
+ 
+    # adjust the rotation matrix to take into account translation
+    M[0, 2] += (nW / 2) - cX
+    M[1, 2] += (nH / 2) - cY
+ 
+    # perform the actual rotation and return the image
+    return cv2.warpAffine(image, M, (nW, nH))
+
+def putRect(src, dst, pos):
+    (x0,y0) = pos
+    x1 = x0 + dst.shape[1]
+    y1 = y0 + dst.shape[0]
+    if x0 < 0:
+        dst_x0 = -x0
+        x0 = 0
+    else:
+        dst_x0 = 0
+    if x1 > src.shape[1]:
+        dst_x1 = dst.shape[1] - x1 + src.shape[1]
+        x1 = src.shape[1]
+    else:
+        dst_x1 = dst.shape[1]
+    if y0 < 0:
+        dst_y0 = -y0
+        y0 = 0
+    else:
+        dst_y0 = 0
+    if y1 > src.shape[0]:
+        dst_y1 = dst.shape[0] - y1 + src.shape[0]
+        y1 = src.shape[0]
+    else:
+        dst_y1 = dst.shape[0]  
+    if dst_y1 <= dst_y0 or dst_x1 <= dst_x0 or y1 <= y0 or x1 <= x0:
+        return src
+    else:
+        src[y0:y1, x0:x1] = dst[dst_y0:dst_y1, dst_x0:dst_x1]
+        return src
+    
 def gray2heatmap(img):
     cmap = plt.get_cmap('jet')
     rgba_img = cmap(img)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Created on Jun 5, 2018
 
@@ -9,6 +10,7 @@ import pygame
 import sys
 import cv2
 from textrender.font import TTFFont
+from textrender.font2 import AccentedFont, UnicodeUtil
 from textrender.relpos_matrix import RelPosSimple, RelPos4D
     
 class RelPosRenderer(object):
@@ -75,11 +77,18 @@ class RelPosRenderer(object):
         return arr, charmasks, bbs, ybaseline
         
 class TextRenderer(object):
-    def __init__(self, charset, params):
+    def __init__(self, charset, params, accent_dir, vninfo_dir):
         self.charset = charset
         pf = TTFFont(charset, params['base-height'], params['base-font'])
-        self.rd = RelPosRenderer(charset, pf)
+        af = AccentedFont(pf, accent_dir, vninfo_dir)
+        self.vneseinfo = UnicodeUtil(vninfo_dir)
+        def bodau(ch):
+            mch,_,_ = self.vneseinfo.decompose(ch)
+            return mch
+        self.bodau = bodau
+        self.rd = RelPosRenderer(charset, af)
         self.params = params
+        
 
     def overWriteFont(self, font_dict):
         for ch in self.charset:
@@ -91,7 +100,7 @@ class TextRenderer(object):
     
     def overWriteRelPos(self, relpos_dict):
         base = relpos_dict['base-relpos-x']
-        mat = RelPos4D(self.charset, base)
+        mat = RelPos4D(self.charset, base, bodau=self.bodau)
         if 'detail-relpos-x' in relpos_dict:
             for twochar, rpdist in relpos_dict['detail-relpos-x'].items():
                 c1 = twochar[0]
@@ -103,6 +112,40 @@ class TextRenderer(object):
                 
         self.mat = mat
     
+    def overWriteRelPosAccent(self, accent_relpos_dict):
+        relaccent = relpos_accent_dict['rel-accent']
+        relchar = relpos_accent_dict['rel-char']
+        for ch, charinfo in self.vneseinfo.accent_dict.items():
+            mch, a0, a1 = charinfo.base, charinfo.accent0, charinfo.accent1
+            a0 = str(a0); a1 = str(a1);
+            temp = a0 + a1
+            if temp in relaccent:
+                pos0 = relchar[temp] if temp in relaccent else relchar['default']
+                pos0 = (pos0['x'], pos0['y'])
+                pos1 = (pos0[0] + relaccent[str(temp)]['x'], pos0[1] + relaccent[str(temp)]['y']) 
+            else:
+                pos0 = relchar[a0] if a0 in relchar else relchar['default']
+                pos0 = (pos0['x'], pos0['y']) if a0 != '0' else None
+                pos1 = relchar[a1] if a1 in relchar else relchar['default']
+                pos1 = (pos1['x'], pos1['y']) if a1 != '0' else None
+            self.rd.charfont.overWrite(ch, None, None, None, (pos0, pos1))
+    
+    def overWriteAccent(self, accent_dict):
+        for accentid_str, info in accent_dict.items():
+            accentid = int(accentid_str)
+            if 'x0' not in info or 'y0' not in info:
+                pos = None
+            else:
+                pos = (info['x0'],info['y0'])
+            if 'rotation' not in info:
+                info['rotation'] = 0.0
+            if 'r_x' not in info or 'r_y' not in info:
+                scale = (1.0,1.0)
+            else:
+                scale = (info['r_x'], info['r_y'])
+            self.rd.charfont.accent_renderer.overWrite(accentid, info['default_height'], 
+                                                       pos, info['rotation'], scale)
+
     def overWrite(self, **kwargs):
         for key in self.params:
             if key in kwargs and kwargs[key] is not None:
@@ -115,8 +158,9 @@ class TextRenderer(object):
                                                   x, 
                                                   relposmat=self.mat)
         return mask, charmasks, charbbs
-        
+
 if __name__ == '__main__':
+    import string
     params = {'txt':'123',
           'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
           'base-height':30,
@@ -124,13 +168,15 @@ if __name__ == '__main__':
            'angle':0.0,
            'height':30
            }
-    renderer = TextRenderer(charset='0123456789', params=params)
+    renderer = TextRenderer(charset=string.ascii_letters + string.digits + ',.-', params=params,
+                            accent_dir='/home/loitg/workspace/genline/resource/fontss/cmnd/chu_in/type_accent2',
+                            vninfo_dir='/home/loitg/workspace/clocr/temp/diacritics2.csv')
     font_dict = {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
                    'detail-font':{'4':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/OFFSFOW.ttf',
                                  },
                    'base-height':30,
                    'detail-height':{'4':80},
-                    'base-ratio':{'x':2.5,'y':1.0},
+                    'base-ratio':{'x':1.0,'y':1.0},
                     'detail-ratio':{
                                         '0':{'x':1.0,'y':1.2}
                                     }
@@ -141,7 +187,43 @@ if __name__ == '__main__':
                       'relpos-y': {'1':0.0, '2':0.0}
                       }
     renderer.overWriteRelPos(relpos_dict)
-    mask,_,_ = renderer.render((0, 50), (100,300), '01234567')
+    relpos_accent_dict = {'rel-accent':{
+                                            '61':{'x':0.0,'y':0.0},
+                                            '62':{'x':0.0,'y':0.0},
+                                            '63':{'x':0.0,'y':0.0},
+                                            '64':{'x':0.0,'y':0.0},
+                                            '81':{'x':0.0,'y':0.0},
+                                            '82':{'x':0.0,'y':0.0},
+                                            '83':{'x':0.0,'y':0.0},
+                                            '84':{'x':0.0,'y':0.0},
+                                        },
+                          'rel-char':{
+                                            'default':{'x':-0.2,'y':0.2},
+                                            '61':{'x':0.0,'y':0.0},
+                                            '62':{'x':0.0,'y':0.0},
+                                            '63':{'x':0.0,'y':0.0},
+                                            '64':{'x':0.0,'y':0.0},
+                                            '81':{'x':0.0,'y':0.0},
+                                            '82':{'x':0.0,'y':0.0},
+                                            '83':{'x':0.0,'y':0.0},
+                                            '84':{'x':0.0,'y':0.0},
+                                            '5':{'x':0.0,'y':-0.5},
+                                        }
+                          }
+    renderer.overWriteRelPosAccent(relpos_accent_dict)
+    
+    accent_info = {'1':{'default_height':10},
+                   '2':{'default_height':10},
+                   '3':{'default_height':10},
+                   '4':{'default_height':10},
+                   '5':{'default_height':10},
+                   '6':{'default_height':10},
+                   '7':{'default_height':10},
+                   '8':{'default_height':10},
+                   '9':{'default_height':10}
+                   }
+    renderer.overWriteAccent(accent_info)
+    mask,_,_ = renderer.render((0, 50), (100,300), u'SÂUSÉ,HỒ-ẨULỘ.')
     cv2.imshow('hh', mask)
     cv2.waitKey(-1)
     
