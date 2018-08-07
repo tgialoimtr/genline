@@ -12,6 +12,7 @@ from glob import glob
 from textrender.font import TTFFont
 from utils.common import putRect
 import pygame
+from src.utils.common import RESOURCE_PATH
 
 def findBoundBox(mask):
     return None
@@ -108,7 +109,7 @@ class MaskRender(object):
     def overWrite(self, accentid, default_height=10, realorigin=None, rotation=0.0, scale=(1.0, 1.0)):
         if accentid not in self.info:
             self.info[accentid] = ShapeInfo()
-        self.info[accentid].default_height = default_height
+        self.info[accentid].default_height = int(default_height)
         self.info[accentid].realorigin = realorigin
         self.info[accentid].rotation = rotation
         self.info[accentid].r_x = scale[0]
@@ -206,10 +207,9 @@ class AccentedFont(object):
 
 if __name__ == '__main__':
     charset = string.ascii_letters + string.digits
-    pf = TTFFont(charset, 40, '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF')
+    pf = TTFFont(charset, 40, RESOURCE_PATH + 'fontss/receipts/general_fairprice/LEFFC2.TTF')
     pf.overWrite('j', None, None, (1.0,1.5))
-    af = AccentedFont(pf, '/home/loitg/workspace/genline/resource/fontss/cmnd/chu_in/type_accent2', 
-                      '/home/loitg/workspace/clocr/temp/diacritics2.csv')
+    af = AccentedFont(pf, RESOURCE_PATH + 'fontss/cmnd/chu_in/type_accent2', RESOURCE_PATH + '/diacritics2.csv')
     
     mat = ( (0.0,0.0),(0.0,0.0))
     af.overWrite(u'ậ', pos = mat)

@@ -1,0 +1,127 @@
+TRẦN ANH VIỆT
+{
+'name':
+{
+    'font':
+    {
+        'base-font':'fontss/cmnd/chu_in/Kingthings Trypewriter 2.ttf',
+        'base-height':33,
+        'base-ratio':{'x':1.1,'y':1.0}
+    },
+    'relpos':
+    {
+        'base-relpos-x':0.03,
+        'detail-relpos-x': {'IE':6},
+        'relpos-y': {'I':0.0, 'E':0.0}
+    },
+    'accent-relpos': 
+    {
+        'rel-accent':
+        {
+            '61':{'x':0.0,'y':0.0},
+            '62':{'x':-0.1,'y':0.1},
+            '63':{'x':0.0,'y':0.0},
+            '64':{'x':0.0,'y':0.1},
+            '81':{'x':0.0,'y':0.0},
+            '82':{'x':0.0,'y':0.0},
+            '83':{'x':0.0,'y':0.0},
+            '84':{'x':0.0,'y':0.0}
+        },
+        'rel-char':
+        {
+            'default':{'x':-0.2,'y':0.2},
+            '61':{'x':0.0,'y':0.2},
+            '62':{'x':0.0,'y':0.2},
+            '63':{'x':0.0,'y':0.0},
+            '64':{'x':0.0,'y':0.3},
+            '81':{'x':0.0,'y':0.0},
+            '82':{'x':0.0,'y':0.0},
+            '83':{'x':0.0,'y':0.0},
+            '84':{'x':0.0,'y':0.0},
+            '5':{'x':0.1,'y':-0.15},
+            '6':{'x':0.0,'y':0.1}
+        }
+     },
+    'accent-info':
+    {
+        '1':{'default-height':10},
+       '2':{'default-height':24, 'rotation':-20},
+       '3':{'default-height':10},
+       '4':{'default-height':10},
+       '5':{'default-height':22},
+       '6':{'default-height':18},
+       '7':{'default-height':10},
+       '8':{'default-height':10},
+       '9':{'default-height':10}
+    },
+    'x0':80,
+    'y0':70,
+    'height':40,
+    'strength':0.78
+},
+'dots':
+{
+    'font':
+    {
+        'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/keys/arial.ttf',
+        'base-height':30,
+        'base-ratio':{'x':1.0,'y':1.0}
+    },
+    'relpos':
+    {
+        'base-relpos-x':0.15,
+        'relpos-y':{}
+    },
+    'x0':40,
+    'y0':79,
+    'strength':0.9,
+    'height':28
+},             
+'guiso':
+{
+    'strength':'0.60:0.80',
+    'height':20,
+    'amp':1,
+    'wavelength':40,
+    'length':'320:340',
+    'angle':0.0,
+    'thick':1,
+    'x0':200,
+    'y0':18            
+},
+'circle':
+{
+    'strength':'0.6+-0.05',
+    'R1':'120+-5',
+    'R2':'135+-5',
+    'a1':2,
+    'a2':3,
+    'n':90,
+    'thick':1,
+    'x0':'120:160',
+    'y0':-20
+},
+'circle2':
+{
+    'strength':'0.5+-0.05',
+    'R1':'125+-3',
+    'R2':'145+-3',
+    'a1':2,
+    'a2':3,
+    'n':90,
+    'thick':1,
+    'x0':155,
+    'y0':120
+},
+'height':64,
+'width':450,
+'pad':20,
+'cut':'20',
+'strength-bg':'0.2',
+'scale':'0.97',
+'rotate':'0.0',
+'si_blur': {},
+'si_dot': {},
+'si_blob': {}
+
+}

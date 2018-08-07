@@ -12,6 +12,7 @@ import pygame
 from mnist import MNIST
 from textrender.char import PrintedChar
 from utils.common import summarize
+from src.utils.common import RESOURCE_PATH
 
 class TTFFont(object):
 
@@ -158,7 +159,7 @@ class HandWrittenFont(object):
 
 if __name__ == '__main__':
     charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
-    pf = TTFFont(charset, 40, '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF')
+    pf = TTFFont(charset, 40, RESOURCE_PATH + 'fontss/receipts/general_fairprice/LEFFC2.TTF')
     pf.overWrite('j', None, None, (1.0,1.5))
 
 #     hwf = HandWrittenFont(SomeOnRamLoader('/media/loitg/New Volume/ocr/bywriteclass/by_class/', "EMNIST_original_byclass"),40)

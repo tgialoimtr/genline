@@ -12,11 +12,13 @@ import cv2
 from textrender.font import TTFFont
 from textrender.font2 import AccentedFont, UnicodeUtil
 from textrender.relpos_matrix import RelPosSimple, RelPos4D
+from src.utils.common import RESOURCE_PATH
     
 class RelPosRenderer(object):
     
     def __init__(self, charset, charfont=None):
         self.charfont = charfont
+        self.spaceScale = 1.0 # TODO: move this into font 
 
     def render(self, txt, shape, ybaseline, height, x0, relposmat=None, relposmat2=None):           
         if relposmat is None:
@@ -31,7 +33,7 @@ class RelPosRenderer(object):
             self.charfont.overWrite(c, height, None, None)
 #             self.charfont[c].setFont(None, height)
             if c == ' ':
-                x0 += self.charfont.spaceWidth()
+                x0 += self.charfont.spaceWidth()*self.spaceScale  # TODO: move this into font 
                 continue
             if beforeChar is not None:
                 temp = relposmat.at((beforeChar, c))
@@ -91,6 +93,7 @@ class TextRenderer(object):
         
 
     def overWriteFont(self, font_dict):
+        self.rd.spaceScale = font_dict['space-scale'] if 'space-scale' in font_dict else 1.0 # TODO: move this into font 
         for ch in self.charset:
             newheight=font_dict['detail-height'][ch] if 'detail-height' in font_dict and ch in font_dict['detail-height'] else font_dict['base-height']
             newbasefont=font_dict['detail-font'][ch] if 'detail-font' in font_dict and ch in font_dict['detail-font'] else font_dict['base-font']
@@ -112,7 +115,7 @@ class TextRenderer(object):
                 
         self.mat = mat
     
-    def overWriteRelPosAccent(self, accent_relpos_dict):
+    def overWriteRelPosAccent(self, relpos_accent_dict):
         relaccent = relpos_accent_dict['rel-accent']
         relchar = relpos_accent_dict['rel-char']
         for ch, charinfo in self.vneseinfo.accent_dict.items():
@@ -120,14 +123,20 @@ class TextRenderer(object):
             a0 = str(a0); a1 = str(a1);
             temp = a0 + a1
             if temp in relaccent:
-                pos0 = relchar[temp] if temp in relaccent else relchar['default']
+                pos0 = relchar[temp] if temp in relchar else relchar['default']
                 pos0 = (pos0['x'], pos0['y'])
-                pos1 = (pos0[0] + relaccent[str(temp)]['x'], pos0[1] + relaccent[str(temp)]['y']) 
+                pos1 = (pos0[0] + relaccent[str(temp)]['x'], pos0[1] + relaccent[str(temp)]['y'])
             else:
-                pos0 = relchar[a0] if a0 in relchar else relchar['default']
-                pos0 = (pos0['x'], pos0['y']) if a0 != '0' else None
-                pos1 = relchar[a1] if a1 in relchar else relchar['default']
-                pos1 = (pos1['x'], pos1['y']) if a1 != '0' else None
+                if a0 != '7' and temp != '65' and a0 != '0' and a1 != '0' and 'default' in relaccent:
+                    pos0 = relchar[temp] if temp in relchar else relchar['default']
+                    pos0 = (pos0['x'], pos0['y'])
+                    pos1 = (pos0[0] + relaccent['default']['x'], pos0[1] + relaccent['default']['y'])
+                else:
+                    if a0 == '9': a0 = mch + a0
+                    pos0 = relchar[a0] if a0 in relchar else relchar['default']
+                    pos0 = (pos0['x'], pos0['y']) if a0 != '0' else None
+                    pos1 = relchar[a1] if a1 in relchar else relchar['default']
+                    pos1 = (pos1['x'], pos1['y']) if a1 != '0' else None
             self.rd.charfont.overWrite(ch, None, None, None, (pos0, pos1))
     
     def overWriteAccent(self, accent_dict):
@@ -139,11 +148,11 @@ class TextRenderer(object):
                 pos = (info['x0'],info['y0'])
             if 'rotation' not in info:
                 info['rotation'] = 0.0
-            if 'r_x' not in info or 'r_y' not in info:
+            if 'r-x' not in info or 'r-y' not in info:
                 scale = (1.0,1.0)
             else:
-                scale = (info['r_x'], info['r_y'])
-            self.rd.charfont.accent_renderer.overWrite(accentid, info['default_height'], 
+                scale = (info['r-x'], info['r-y'])
+            self.rd.charfont.accent_renderer.overWrite(accentid, info['default-height'], 
                                                        pos, info['rotation'], scale)
 
     def overWrite(self, **kwargs):
@@ -162,17 +171,17 @@ class TextRenderer(object):
 if __name__ == '__main__':
     import string
     params = {'txt':'123',
-          'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
+          'base-font':'fontss/cmnd/so_do/9thyssen.ttf',
           'base-height':30,
            'relpos-y':{},
            'angle':0.0,
            'height':30
            }
     renderer = TextRenderer(charset=string.ascii_letters + string.digits + ',.-', params=params,
-                            accent_dir='/home/loitg/workspace/genline/resource/fontss/cmnd/chu_in/type_accent2',
-                            vninfo_dir='/home/loitg/workspace/clocr/temp/diacritics2.csv')
-    font_dict = {'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/9thyssen.ttf',
-                   'detail-font':{'4':'/home/loitg/Downloads/fonts/fontss/cmnd/so_do/OFFSFOW.ttf',
+                            accent_dir=RESOURCE_PATH + 'fontss/cmnd/chu_in/type_accent2',
+                            vninfo_dir=RESOURCE_PATH + 'diacritics2.csv')
+    font_dict = {'base-font':'fontss/cmnd/so_do/9thyssen.ttf',
+                   'detail-font':{'4':'fontss/cmnd/so_do/OFFSFOW.ttf',
                                  },
                    'base-height':30,
                    'detail-height':{'4':80},
@@ -212,15 +221,15 @@ if __name__ == '__main__':
                           }
     renderer.overWriteRelPosAccent(relpos_accent_dict)
     
-    accent_info = {'1':{'default_height':10},
-                   '2':{'default_height':10},
-                   '3':{'default_height':10},
-                   '4':{'default_height':10},
-                   '5':{'default_height':10},
-                   '6':{'default_height':10},
-                   '7':{'default_height':10},
-                   '8':{'default_height':10},
-                   '9':{'default_height':10}
+    accent_info = {'1':{'default-height':10},
+                   '2':{'default-height':10},
+                   '3':{'default-height':10},
+                   '4':{'default-height':10},
+                   '5':{'default-height':10},
+                   '6':{'default-height':10},
+                   '7':{'default-height':10},
+                   '8':{'default-height':10},
+                   '9':{'default-height':10}
                    }
     renderer.overWriteAccent(accent_info)
     mask,_,_ = renderer.render((0, 50), (100,300), u'SÂUSÉ,HỒ-ẨULỘ.')
@@ -231,7 +240,7 @@ if __name__ == '__main__':
 #     charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
 #      
 #     ### FONTS
-#     basefont = '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF'
+#     basefont = RESOURCE_PATH + 'fontss/receipts/general_fairprice/LEFFC2.TTF'
 #     ### RelPos
 #     mat = RelPos4D(charset)
 #     mat.mat[('a','b')].hor = -0.1

@@ -6,6 +6,7 @@ Created on Jun 5, 2018
 import pygame.locals
 from pygame import freetype
 import cv2
+from utils.common import RESOURCE_PATH
     
 class PrintedChar(object):
     '''
@@ -43,7 +44,7 @@ class PrintedChar(object):
                 reinit = True
                 self.baseheight = height
         if reinit:
-            self.font = freetype.Font(self.basefont, size=self.baseheight)
+            self.font = freetype.Font(RESOURCE_PATH + self.basefont, size=self.baseheight)
             self.font.antialiased = True
             self.font.origin = True
             self.space = self.font.get_rect('O')
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     import pygame
     pygame.init()
     charfont = PrintedChar('a')
-    charfont.setFont('/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF', 40)
+    charfont.setFont(RESOURCE_PATH + 'fontss/receipts/general_fairprice/LEFFC2.TTF', 40)
     _, mask = charfont.render((50,50),(100,100))
     cv2.imshow('kk', mask)
     cv2.waitKey(-1)

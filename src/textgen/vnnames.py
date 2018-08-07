@@ -8,6 +8,7 @@ import random
 import numpy as np
 import pandas as pd
 from textgen.combiner import RegExGen
+from src.utils.common import RESOURCE_PATH
 
 def quan(qh):
     rs = qh
@@ -69,8 +70,8 @@ class QuanHuyenGen(object):
             raise ValueError('unsupport number')
 
 if __name__ == '__main__':
-    gener = QuanHuyenGen('/home/loitg/workspace/genline/resource/tinhtp.csv')
-#     gener = HoTenGen('/home/loitg/workspace/genline/resource/temp.csv')
+    gener = QuanHuyenGen(RESOURCE_PATH + 'tinhtp.csv')
+#     gener = HoTenGen(RESOURCE_PATH + 'temp.csv')
     
     for i in range(10):
         txt = gener.gen()

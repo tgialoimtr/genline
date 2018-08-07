@@ -8,6 +8,7 @@ from textgen.combiner import *
 from textgen.detailgen import *
 import copy
 from utils.params import clconfig
+from src.utils.common import RESOURCE_PATH
 
 #Bo sung malls, streets
 #Ngay thang nam
@@ -181,13 +182,13 @@ class CapitalandGen(Gen):
         self.nottotalpair = PairGen(self.nottotalkey, self.number, 0.8, 0.1, 0.1, ':', True, True)
         
     def createNotPair(self):
-        notpair = ParragraphGen('/home/loitg/workspace/genreceipt/resource/parragraph.txt')
+        notpair = ParragraphGen(RESOURCE_PATH + 'parragraph.txt')
         self.notpair = ChangeCaseGen(notpair, 0.3, 0.0)
         return self.notpair
     
     
     def createStore(self):
-        self.rawstore = StoreGen('/home/loitg/workspace/genreceipt/resource/store.txt')
+        self.rawstore = StoreGen(RESOURCE_PATH + 'store.txt')
         rsinprefix = r'\(S\)|S|SE|SG|Singapore|SINGAPORE|Sing|S\'PORE|SIN|Sin'
         store_suffix = ListGenWithProb([r'\[BM\]', r'(' + rsinprefix + ')? Pte Ltd'],[0.2,0.8])
         storegen = ComplexGen([self.rawstore, ' ', store_suffix], [1.0,1.0,0.3])

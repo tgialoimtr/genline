@@ -19,7 +19,6 @@ from ParametersMatching.collections import Params
 from genline.combiner import LambdaGen, ListGenWithProb, ComplexGen, PairGen
 import re
 import unicodedata
-from PyQt4.Qt import QHBoxLayout
 
 
 def no_accent_vietnamese(s):

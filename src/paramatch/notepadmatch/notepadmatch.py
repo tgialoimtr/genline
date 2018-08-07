@@ -7,15 +7,20 @@ import sys, os
 import hashlib
 import cv2
 import numpy as np
-from cmndgen.pipeline import CMNDPipeID
+from cmndgen.pipeline import CMNDPipeID, CMNDPipeName
 from utils.common import gray2heatmap
 import json
+import codecs
+from src.utils.common import TEMPORARY_PATH
 
 class Instance(object):
-    def __init__(self, imgpath, gennerFromFile):
+    def __init__(self, imgpath, gennerFromFile, dst_height=None):
         self.imgpath = imgpath
         self.imgname = os.path.basename(imgpath)
         self.img = cv2.imread(self.imgpath)
+        if dst_height is not None:
+            newwidth = int(1.0*self.img.shape[1]/self.img.shape[0]*dst_height)
+            self.img = cv2.resize(self.img, (newwidth, dst_height))
         self.gen = gennerFromFile
         self.previousmd5 = None
         self.combinedPreview = None
@@ -48,15 +53,16 @@ class Instance(object):
         minwidth = min(self.img.shape[1], overlay.shape[1])
         output[:minheight,:minwidth,self.combineColor] = overlay[:minheight,:minwidth]
         cv2.addWeighted(output, 0.5, self.img, 0.5, 0, output)
-        
+        print output.shape
+        print overlay.shape
         self.combinedPreview = stackAndShow([target_heatmap, line_heatmap, output], direction_is_horizontal=True, sameheight=64)
         
         return self.combinedPreview
         
     
     def changed(self, reset=True):
-        filecontent = open(self.txtpath).read()
-        newmd5 = hashlib.md5(filecontent).hexdigest()
+        filecontent = codecs.open(self.txtpath, encoding='utf8').read()
+        newmd5 = hashlib.md5(filecontent.encode("utf-8")).hexdigest()
         if newmd5 != self.previousmd5:
             if reset:
                 self.previousmd5 = newmd5
@@ -96,16 +102,21 @@ def stackAndShow(imgs, direction_is_horizontal=True, samewidth=None, sameheight=
             rs[i*maxheight : img.shape[0] + i*maxheight, :img.shape[1]] = img
     return rs
         
+def measureCompare(linedir, workdir):
+    pass
+
+def sample(alignedpath, tempdir):
+    pass
 
 if __name__ == '__main__':
-    sys.argv = ['/home/loitg/workspace/genline/temp/2', '/home/loitg/workspace/genline/temp/1']
+    sys.argv = [TEMPORARY_PATH + '35', TEMPORARY_PATH + '4']
     if len(sys.argv) < 2:
         print('linedir, workingdir')
         sys.exit(0)
     
     linedir = sys.argv[0]
     workdir = sys.argv[1]
-    pipe = CMNDPipeID()
+    pipe = CMNDPipeName()
     def gen(filecontent):
         try:
             txt, jsonStr = filecontent.split('\n', 1)
@@ -123,7 +134,7 @@ if __name__ == '__main__':
     for fn in os.listdir(linedir):
         if fn[-3:].upper() not in ['PEG','JPG','PNG']:
             continue
-        instance = Instance(os.path.join(linedir, fn), gen)
+        instance = Instance(os.path.join(linedir, fn), gen, dst_height=64)
         instance.initTextAt(workdir)
         instances.append(instance)   
     

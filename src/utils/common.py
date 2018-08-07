@@ -11,13 +11,14 @@ from scipy.ndimage import interpolation
 from skimage.filters import threshold_sauvola, gaussian
 import re
 import unicodedata
-import src
-from skimage.transform.tests.test_geometric import SRC
 
 cmnd_path = '/home/loitg/workspace/cmnd/scanned/'
 cmnd_path = '/home/loitg/workspace/receipttest/img/'
 hoadon_path = '/home/loitg/workspace/python/python/img/'
 tmp_path = '/tmp/loitg/'
+
+TEMPORARY_PATH = '/home/loitg/workspace/genline/temp/'
+RESOURCE_PATH = '/home/loitg/workspace/genline/resource/'
 
 class obj:
     def __init__(self):

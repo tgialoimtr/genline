@@ -82,20 +82,20 @@ class BGDummyGui(object):
     
     def render(self, pos, shape):
         alpha= np.zeros(shape,'uint8')
-        amp = random.randint(int(shape[0]/7), int(shape[0]/5))
-        wavelength = random.randint(int(shape[0]/4), int(shape[0]/2))
-        thick = random.randint(1,2)
-        angle= random.uniform(0.0, 160.0)
-        n = random.randint(15,30)
+        amp = random.randint(int(shape[0]/32), int(shape[0]/16))
+        wavelength = random.randint(int(shape[0]/16), int(shape[0]/8))
+        thick = 1
+        angle= 0
+        n = random.randint(10,30)
         y0 = random.randint(20,30)
         dy = (shape[0] - y0)/n
-        x0 = random.randint(20,30)
+        x0 = random.randint(-10,10) + int(shape[1]/2)
         dx = (shape[1] - x0)/n
         
         for i in range(n):
-            x0 += dx + random.randint(-2,2)
+#             x0 += dx + random.randint(-2,2)
             y0 += dy + random.randint(-2,2)
-            pts = sineWave(x0, y0, int(shape[1]*0.8), amp, wavelength, angle)
+            pts = sineWave(x0, y0, int(shape[1]), amp, wavelength, angle, phase=random.randint(0,180))
             cv2.polylines(alpha, [pts], isClosed=False, color=255, thickness=thick)
         
         return alpha

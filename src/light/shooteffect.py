@@ -23,7 +23,7 @@ class ShootEffect(object):
         self.fold_warp =  0.2
         self.p_matnet = 0
         self.p_ = 0
-        self.distortor = Distort(0.99,2,2, 4)
+        self.distortor = Distort(0.99,2,2,4)
         self.rotator = RotateRange(0.99, 2,2)
 
     # mask
@@ -63,19 +63,17 @@ class ShootEffect(object):
         return mask
     
     # textmask
-    def blur(self, mask):
+    def blur(self, mask, sigma):
         (h,_) = mask.shape[:2]
-        ksz = h//4*2+1
-        bszx= 2*np.random.rand()
-        bszy= 2*np.random.rand()
-        if bszx + bszy > 5.0:
-            return mask
-        else:
-            mask = cv2.GaussianBlur(mask,(ksz,ksz),sigmaX=bszx, sigmaY=bszy)
-            return mask.astype(np.uint8)
+        ksz = 0
+        bszx= sigma[0]
+        bszy= sigma[1]
+        mask = cv2.GaussianBlur(mask,(ksz,ksz),sigmaX=bszx, sigmaY=bszy)
+        return mask.astype(np.uint8)
+    
     # mask / grayscale
-    def addnoise0(self, line):
-        noises = np.random.randn(*line.shape[:2])*np.random.randint(1,10)
+    def addnoise0(self, line, strength):
+        noises = np.random.randn(*line.shape[:2])*np.random.randint(1,strength)
         line = (line + noises)
         line = np.clip(line, 0, 255).astype(np.uint8)
         return line
@@ -90,8 +88,8 @@ class ShootEffect(object):
   
     # color image
     def colorBlob0(self, line):
-        colormask = noiseMask(line[:,:], nplaces=3, relative_r=0.5, strength=(0.2,0.2), bsz=0.1)
-        logo_cl = np.random.randint(150,250)
+        colormask = noiseMask(line[:,:], nplaces=3, relative_r=0.05, strength=(0.7,0.97), bsz=0.1)
+        logo_cl = np.random.randint(20,80)
         rs = (((1-colormask)*1.0)[:,:] * line
                     + colormask[:,:]*logo_cl) 
         return np.clip(rs,0,255).astype(np.uint8)
