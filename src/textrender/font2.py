@@ -12,7 +12,7 @@ from glob import glob
 from textrender.font import TTFFont
 from utils.common import putRect
 import pygame
-from src.utils.common import RESOURCE_PATH
+from utils.common import RESOURCE_PATH
 
 def findBoundBox(mask):
     return None

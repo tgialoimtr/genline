@@ -4,7 +4,7 @@ TRƯƠNG GIA LỢI
 {
     'font':
     {
-        'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/chu_in/Kingthings Trypewriter 2.ttf',
+        'base-font':'fontss/cmnd/chu_in/Kingthings Trypewriter 2.ttf',
         'base-height':33,
         'base-ratio':{'x':1.1,'y':1.0}
     },
@@ -61,7 +61,7 @@ TRƯƠNG GIA LỢI
 {
     'font':
     {
-        'base-font':'/home/loitg/Downloads/fonts/fontss/cmnd/keys/arial.ttf',
+        'base-font':'fontss/cmnd/keys/arial.ttf',
         'base-height':30,
         'base-ratio':{'x':1.0,'y':1.0}
     },

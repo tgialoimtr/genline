@@ -8,7 +8,7 @@ import random
 import numpy as np
 import pandas as pd
 from textgen.combiner import RegExGen
-from src.utils.common import RESOURCE_PATH
+from utils.common import RESOURCE_PATH
 
 def quan(qh):
     rs = qh

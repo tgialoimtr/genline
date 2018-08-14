@@ -48,6 +48,11 @@ args.connect = 4
 args.noise = 8
 args.mode = 'cu'
 
+def resizeToHeight(img, newheight):
+    newwidth = int(1.0*img.shape[1]/img.shape[0]*newheight)
+    newimg = cv2.resize(img, (newwidth, newheight))
+    return newimg
+
 def rotate_bound(image, angle):
     # grab the dimensions of the image and then determine the
     # center

@@ -12,7 +12,7 @@ import pygame
 from mnist import MNIST
 from textrender.char import PrintedChar
 from utils.common import summarize
-from src.utils.common import RESOURCE_PATH
+from utils.common import RESOURCE_PATH
 
 class TTFFont(object):
 

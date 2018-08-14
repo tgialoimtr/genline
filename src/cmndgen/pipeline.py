@@ -23,7 +23,7 @@ from textgen.vnnames import HoTenGen, QuanHuyenGen
 from utils.common import no_accent_vietnamese
 
 from matplotlib import pyplot as plt
-from src.utils.common import RESOURCE_PATH
+from utils.common import RESOURCE_PATH
 
 def gray2heatmap(img):
     cmap = plt.get_cmap('jet')
