@@ -20,7 +20,6 @@ from textrender.relpos_matrix import RelPos4D
 from textgen.items import RegExGen
 from light.colorize3_poisson import Layer
 from textgen.vnnames import HoTenGen, QuanHuyenGen
-from utils.common import no_accent_vietnamese
 
 from matplotlib import pyplot as plt
 from utils.common import RESOURCE_PATH
@@ -162,8 +161,17 @@ class CMNDPipeName(object):
         mask,b,c = renderer.render((x0, y0), shape, txt)
         return mask,b,c
     
+    def _editGened(self, gened):
+        if gened['strength-bg'] > gened['name']['strength']:
+            gened['strength-bg'] = gened['name']['strength']/2
+        if gened['circle']['strength'] > gened['name']['strength']:
+            gened['circle']['strength'] = gened['name']['strength']/2
+        if gened['width'] < len(self.txt) * 30 + gened['name']['x0']:
+            gened['width'] = len(self.txt) * 30 + gened['name']['x0']
+            
     def gen(self):
         gened = self.p.getChangable()
+        self._editGened(gened)
         name_font_dict = gened['name']['font']
         name_relpos_dict = gened['name']['relpos']
         dots_font_dict = gened['dots']['font']
@@ -194,9 +202,9 @@ class CMNDPipeName(object):
         mask_circle = self.circle.render((gened['circle']['x0'],gened['circle']['y0']), 
                                        (self.height, self.width))
         
-        fgs = [(mask_guibg, gened['strength-bg']), (mask_circle, gened['circle']['strength'])]
-        ret0 = (mergeList(None, fgs)*255).astype(int)
-        ret0 = self.si.matnet(ret0)
+        strength_bg_bg = random.uniform(gened['strength-bg']/3.0,gened['strength-bg'])
+        fgs = [(np.ones_like(mask_guibg, dtype=np.uint8)*255,strength_bg_bg), (mask_guibg, gened['strength-bg']), (mask_circle, gened['circle']['strength'])]
+        ret0 = (mergeList(None, fgs)*255)
         ret0 = self.si.blur(ret0, (1,1))    
         mask_name = self.si.inkeffect(mask_name) 
 #         mask_name = self.si.matnet(mask_name)

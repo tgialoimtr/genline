@@ -5,14 +5,14 @@
     {
         'base-font':'fontss/cmnd/chu_in/Kingthings Trypewriter 2.ttf',
         'base-height':33,
-        'base-ratio':{'x':'1.05:1.1','y':1.0},
-        'detail-ratio':{',': {'x':1.5,'y':1.5},
-                        '.': {'x':1.5,'y':1.5}},
-        'space-scale':'1.1+-0.1'
+        'base-ratio':{'x':'1.00:1.15','y':1.0},
+        'detail-ratio':{',': {'x':'1.5+-0.2','y':'1.5+-0.2'},
+                        '.': {'x':'1.5+-0.2','y':'1.5+-0.2'}},
+        'space-scale':'1.1+-0.3'
     },
     'relpos':
     {
-        'base-relpos-x':0.03,
+        'base-relpos-x':'0.027:0.033',
         'relpos-y': {'O':'0+-0.05', 
                      'C':'0+-0.05',
                      'M':'0+-0.05',
@@ -63,7 +63,7 @@
        '9':{'default-height':'18:22'}
     },
     'x0':'40:90',
-    'y0':'70+-3',
+    'y0':'60:75',
     'height':40,
     'strength':'0.8+-0.15'
 },
@@ -73,11 +73,11 @@
     {
         'base-font':'fontss/cmnd/keys/arial.ttf',
         'base-height':30,
-        'base-ratio':{'x':1.0,'y':1.0}
+        'base-ratio':{'x':'1.0+-0.2','y':'1.0+-0.2'}
     },
     'relpos':
     {
-        'base-relpos-x':0.15,
+        'base-relpos-x':'0.15',
         'relpos-y':{}
     },
     'x0':'0:40',
@@ -110,11 +110,11 @@
     'y0':'-30:140'
 },
 'height':64,
-'width':'550',
+'width':'0',
 'pad':20,
 'cut':'20',
-'strength-bg':'0.4+-0.1',
-'scale':'1.045',
+'strength-bg':'0.6+-0.2',
+'scale':'0.95:1.15',
 'rotate':'0.0',
 'si_blur': {},
 'si_dot': {},
