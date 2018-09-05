@@ -12,7 +12,7 @@ import cv2
 from textrender.font import TTFFont
 from textrender.font2 import AccentedFont, UnicodeUtil
 from textrender.relpos_matrix import RelPosSimple, RelPos4D
-from src.utils.common import RESOURCE_PATH
+from utils.common import RESOURCE_PATH
     
 class RelPosRenderer(object):
     

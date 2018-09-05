@@ -31,7 +31,7 @@ class UnicodeUtil(object):
             for line in f:
                 temp = line.strip().split(',')
                 accent = temp[1].decode('utf8')                
-                self.accent_dict[accent] = VNCharInfo(temp[2], temp[3], temp[4])
+                self.accent_dict[accent] = VNCharInfo(temp[2], int(temp[3]), int(temp[4]))
                 self.accent_set.add(int(temp[3]))
                 self.accent_set.add(int(temp[4]))
     
@@ -60,6 +60,15 @@ class UnicodeUtil(object):
             return self.accent_dict[ch]
         else:
             return VNCharInfo(ch, 0, 0)
+    
+    def to_vni(self, sentence):
+        ret = ''
+        for ch in sentence:
+            ch, a0, a1 = self.decompose(ch)
+            ret += ch
+            if a0 > 0: ret += str(a0)
+            if a1 > 0: ret += str(a1)
+        return ret
         
 
 class MultipleMaskLoader(object):
@@ -174,7 +183,6 @@ class AccentedFont(object):
     def render(self, ch, pos, shape=None):
         (x,y) = pos
         mch, a1, a2 = self.vneseinfo.decompose(ch)
-        a1 = int(a1); a2=int(a2)
         rs = np.zeros(shape, dtype=np.uint8)
         bound, mask = self.mfont.render(mch, pos, rs.shape)
         rs = cv2.bitwise_or(rs, mask)

@@ -213,7 +213,7 @@ class CMNDPipeName(object):
         ret1 = 1.0-mergeList(ret0/255.0, [(mask_dots, gened['dots']['strength']), (mask_name, gened['name']['strength'])])
         ret1 = self.si.addnoise0(255*ret1, 10)
         ret1 = self.si.heterogeneous0(ret1)
-        ret1 = self.si.colorBlob0(ret1)
+#         ret1 = self.si.colorBlob0(ret1)
         ret1 = self.si.distort(ret1)
 
         
