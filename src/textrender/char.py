@@ -76,8 +76,10 @@ class PrintedChar(object):
             x0 = newx0 + x; x1 = newx1 + x; y0 = newy0 + y; y1 = newy1 + y;
             x90 = newx0 + x9; x91 = newx1 + x9; y90 = newy0 + y9; y91 = newy1 + y9;
             mask[:,:] = 0
-            mask[y0:y1,x0:x1] = mask9[y90:y91,x90:x91]
-            
+            try:
+                mask[y0:y1,x0:x1] = mask9[y90:y91,x90:x91]
+            except Exception as e:
+                pass
             bound.width = int(round(bound.width * self.r_x))
             bound.height = int(round(bound.height * self.r_y))
             bound.x = int(round(bound.x * self.r_x))
